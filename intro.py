@@ -2,41 +2,47 @@
 import pygame
 import random
 
-class DrawRect:
-    def __init__(self, surface, color, xPos, yPos, width, height):
+class Shapes:   # Parent classs
+    def __init__(self, surface, color, xPos, yPos):
         self.__surface = surface
         self.__color = color
         self.__xPos = xPos
         self.__yPos = yPos
+
+    def ReadSurface(self):
+        return self.__surface
+    
+    def ReadColor(self):
+        return self.__color
+
+    def SetXPos(self, moveValue):
+        self.__xPos += moveValue
+
+    def ReadXPos(self):
+        # read the value of an attribute
+        return self.__xPos
+    
+    def ReadYPos(self):
+        return self.__yPos
+
+class DrawRect(Shapes):     # Inheriting from parent class
+    def __init__(self, surface, color, xPos, yPos, width, height):
+        super().__init__(surface, color, xPos, yPos)
         self.__width = width
         self.__height = height
         # __ means that the attribute is protected and cannot be directly accessed by another object
 
     def DrawShape(self):
-        pygame.draw.rect(self.__surface, self.__color, [self.__xPos, self.__yPos, self.__width, self.__height], 0)
+        pygame.draw.rect(self.ReadSurface(), self.ReadColor(), [self.ReadXPos(), self.ReadYPos(), self.__width, self.__height], 0)
         # pygame.display.update()
-    
-    def ReadXPos(self):
-        # read the value of an attribute
-        return self.__xPos
-    
-    def SetXPos(self, moveValue):
-        # set/change the value of an attribute
-        self.__xPos += moveValue
 
-class DrawCircle:
+class DrawCircle(Shapes):   # Inheriting from parent class
     def __init__(self, surface, color, xPos, yPos, radius):
-        self.__surface = surface
-        self.__color = color
-        self.__xPos = xPos
-        self.__yPos = yPos
+        super().__init__(surface, color, xPos, yPos)
         self.__radius = radius
     
     def DrawShape(self):
-        pygame.draw.circle(self.__surface, self.__color, [self.__xPos, self.__yPos], self.__radius, 0)
-    
-    def SetXPos(self, moveValue):
-        self.__xPos += moveValue
+        pygame.draw.circle(self.ReadSurface(), self.ReadColor(), [self.ReadXPos(), self.ReadYPos()], self.__radius, 0)
 
 def DrawShapes(shapeList):
     for shape in shapeList:
@@ -80,24 +86,23 @@ pygame.display.set_caption(title)
 # instantiate objects from the DrawRect class
 # rect1 = DrawRect(surface, (0, 0, 255), 100, 100, 400, 100)
 # rect2 = DrawRect(surface, (0, 255, 0), screenWidth, screenHeight, 200, 50)
-rectList = []  # store out rect objects
+shapeList = []  # store out rect objects
 for i in range(5):
     col = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
     sizeX = random.randint(1,250)
     sizeY = random.randint(1,250)
     posX = random.randint(0, screenWidth - sizeX)
     posY = random.randint(0, screenHeight - sizeY)
-    rectList.append(DrawRect(surface, col, posX, posY, sizeX, sizeY))
+    shapeList.append(DrawRect(surface, col, posX, posY, sizeX, sizeY))
     # print(rectList[i].ReadXPos())
 
-circleList = []
 for i in range(5):
     col = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
     rad = random.randint(1, 100)
     posX = random.randint(0, screenWidth - sizeX)
     posY = random.randint(0, screenWidth - sizeY)
 
-    circleList.append(DrawCircle(surface, col, posX, posY, rad))
+    shapeList.append(DrawCircle(surface, col, posX, posY, rad))
 
 # creating a bool value which checks allows the game to run
 running = True
@@ -122,9 +127,7 @@ while running:
     # rect1.DrawShape()
     # rect2.DrawShape()
     # MoveShapes(rectList, 1)
-    DrawShapes(rectList)
-    DrawShapes(circleList)
-      
-    
+    DrawShapes(shapeList)
+
     #pygame.display.flip()  # render the bgcolor
     pygame.display.update()  # update the display
