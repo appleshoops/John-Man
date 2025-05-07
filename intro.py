@@ -1,4 +1,5 @@
 # importing the library
+from typing import override
 import pygame
 import random
 
@@ -16,7 +17,7 @@ class Shapes:   # Parent classs
         return self.__color
 
     def SetXPos(self, moveValue):
-        self.__xPos += moveValue
+        self.__xPos = moveValue
 
     def ReadXPos(self):
         # read the value of an attribute
@@ -30,11 +31,33 @@ class DrawRect(Shapes):     # Inheriting from parent class
         super().__init__(surface, color, xPos, yPos)
         self.__width = width
         self.__height = height
+        self.__movingLeft = self.SetDirection()
+    
+    def SetDirection(self):
+        x = random.randint(0, 1)
+        if x == 0:
+            return True
+        else:
+            return False
         # __ means that the attribute is protected and cannot be directly accessed by another object
 
     def DrawShape(self):
         pygame.draw.rect(self.ReadSurface(), self.ReadColor(), [self.ReadXPos(), self.ReadYPos(), self.__width, self.__height], 0)
         # pygame.display.update()
+
+    def SetXPos(self, moveValue):
+        newPos = self.ReadXPos()
+        if self.__movingLeft:   # if true
+            if self.ReadXPos() <= 0:   # if shape is on or below boundary
+                self.__movingLeft = False  # Changed == to =
+            else:
+                newPos = self.ReadXPos() - moveValue
+        else:
+            if self.ReadXPos() + self.__width >= screenWidth:
+                self.__movingLeft = True
+            else:
+                newPos = self.ReadXPos() + moveValue
+        super().SetXPos(newPos)  # Call parent method to update position
 
 class DrawCircle(Shapes):   # Inheriting from parent class
     def __init__(self, surface, color, xPos, yPos, radius):
@@ -126,8 +149,8 @@ while running:
     # pygame.draw.rect(surface, (0, 0, 255), [100, 100, 400, 100], 0)
     # rect1.DrawShape()
     # rect2.DrawShape()
-    # MoveShapes(rectList, 1)
     DrawShapes(shapeList)
+    MoveShapes(shapeList, 1)
 
     #pygame.display.flip()  # render the bgcolor
     pygame.display.update()  # update the display
