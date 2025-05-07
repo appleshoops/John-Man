@@ -23,6 +23,9 @@ class Shapes:   # Parent classs
         # read the value of an attribute
         return self.__xPos
     
+    def SetYPos(self, moveValue):
+        self.__yPos = moveValue
+
     def ReadYPos(self):
         return self.__yPos
 
@@ -64,6 +67,14 @@ class DrawCircle(Shapes):   # Inheriting from parent class
         super().__init__(surface, color, xPos, yPos)
         self.__radius = radius
     
+    def setDirection(self):
+        y = random.randint(0, 1)
+        if y == 0:
+            return True
+        else:
+            return False
+
+
     def DrawShape(self):
         pygame.draw.circle(self.ReadSurface(), self.ReadColor(), [self.ReadXPos(), self.ReadYPos()], self.__radius, 0)
 
