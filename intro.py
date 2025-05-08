@@ -66,6 +66,7 @@ class DrawCircle(Shapes):   # Inheriting from parent class
     def __init__(self, surface, color, xPos, yPos, radius):
         super().__init__(surface, color, xPos, yPos)
         self.__radius = radius
+        self.__movingUp = self.setDirection()
     
     def setDirection(self):
         y = random.randint(0, 1)
@@ -74,6 +75,19 @@ class DrawCircle(Shapes):   # Inheriting from parent class
         else:
             return False
 
+    def SetYPos(self, moveValue):
+        newPos = self.ReadYPos()
+        if self.__movingUp:
+            if self.ReadYPos() + self.__radius >= screenHeight:
+                self.__movingUp = False
+            else:
+                newPos = self.ReadYPos() - moveValue
+        else:
+            if self.ReadYPos() - self.__radius <= 0:
+                self.__movingUp = True
+            else:
+                newPos = self.ReadYPos() + moveValue
+        super().SetYPos(newPos)
 
     def DrawShape(self):
         pygame.draw.circle(self.ReadSurface(), self.ReadColor(), [self.ReadXPos(), self.ReadYPos()], self.__radius, 0)
@@ -85,6 +99,7 @@ def DrawShapes(shapeList):
 def MoveShapes(shapeList, moveValue):
     for shape in shapeList:
         shape.SetXPos(moveValue)
+        shape.SetYPos(moveValue)
         # shape.__yPos += moveValue
         
 
