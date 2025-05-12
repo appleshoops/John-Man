@@ -1,4 +1,5 @@
 # importing the library
+from this import d
 from typing import override
 import pygame
 import random
@@ -35,6 +36,7 @@ class DrawRect(Shapes):     # Inheriting from parent class
         self.__width = width
         self.__height = height
         self.__movingLeft = self.SetDirection()
+        self.__movingDown = self.SetDirection()
     
     def SetDirection(self):
         x = random.randint(0, 1)
@@ -62,11 +64,26 @@ class DrawRect(Shapes):     # Inheriting from parent class
                 newPos = self.ReadXPos() + moveValue
         super().SetXPos(newPos)  # Call parent method to update position
 
+    def SetYPos(self, moveValue):
+        newPos = self.ReadYPos()
+        if self.__movingDown:
+            if self.ReadYPos() + self.__height >= screenHeight:
+                self.__movingDown = False
+            else:
+                newPos = self.ReadYPos() + moveValue
+        else:
+            if self.ReadYPos() <= 0:
+                self.__movingDown = True
+            else:
+                newPos = self.ReadYPos() - moveValue
+        super().SetYPos(newPos)
+
 class DrawCircle(Shapes):   # Inheriting from parent class
     def __init__(self, surface, color, xPos, yPos, radius):
         super().__init__(surface, color, xPos, yPos)
         self.__radius = radius
         self.__movingUp = self.setDirection()
+        self.__movingLeft = self.setDirection()
     
     def setDirection(self):
         y = random.randint(0, 1)
@@ -78,16 +95,30 @@ class DrawCircle(Shapes):   # Inheriting from parent class
     def SetYPos(self, moveValue):
         newPos = self.ReadYPos()
         if self.__movingUp:
-            if self.ReadYPos() + self.__radius >= screenHeight:
+            if self.ReadYPos() - self.__radius <= 0:  # Check if hitting top boundary
                 self.__movingUp = False
             else:
                 newPos = self.ReadYPos() - moveValue
         else:
-            if self.ReadYPos() - self.__radius <= 0:
+            if self.ReadYPos() + self.__radius >= screenHeight:  # Check if hitting bottom boundary
                 self.__movingUp = True
             else:
                 newPos = self.ReadYPos() + moveValue
         super().SetYPos(newPos)
+    
+    def SetXPos(self, moveValue):
+        newPos = self.ReadXPos()
+        if self.__movingLeft:   # if true
+            if self.ReadXPos() <= 0:   # if shape is on or below boundary
+                self.__movingLeft - self.__radius == False  # Changed == to =
+            else:
+                newPos = self.ReadXPos() - moveValue
+        else:
+            if self.ReadXPos() + self.__radius >= screenWidth:
+                self.__movingLeft = True
+            else:
+                newPos = self.ReadXPos() + moveValue
+        super().SetXPos(newPos)  # Call parent method to update position
 
     def DrawShape(self):
         pygame.draw.circle(self.ReadSurface(), self.ReadColor(), [self.ReadXPos(), self.ReadYPos()], self.__radius, 0)
