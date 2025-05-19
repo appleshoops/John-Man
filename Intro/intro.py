@@ -102,6 +102,8 @@ class DrawCircle(Shapes):   # Inheriting from parent class
         else:
             if self.ReadYPos() + self.__radius >= screenHeight:  # Check if hitting bottom boundary
                 self.__movingUp = True
+
+                
             else:
                 newPos = self.ReadYPos() + moveValue
         super().SetYPos(newPos)
