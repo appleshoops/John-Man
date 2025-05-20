@@ -13,13 +13,18 @@ SCREENWIDTH = TILEWIDTH * NUMBERCOLS
 SCREENHEIGHT = TILEHEIGHT * NUMBERROWS
 BLACK = (0, 0, 0)
 
-class Object():
+class Object:
     def __init__(self, row, col, xPos, yPos):
         self.__row = row
         self.__col = col
         self.__xPos = col * TILEWIDTH
         self.__yPos = row * TILEHEIGHT
 
+class Wall(Object):
+    def __init__(self, row, col, xPos, yPos, wallType):
+        super().__init__(row, col, xPos, yPos)
+        self.__wallType = wallType
+        
 pygame.init()
 screen = pygame.display.set_mode([SCREENWIDTH, SCREENHEIGHT])
 timer = pygame.time.Clock()
@@ -30,7 +35,6 @@ running = True
 while running:
     timer.tick(frames)
     screen.fill(BLACK)
-    draw_board(boards)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
