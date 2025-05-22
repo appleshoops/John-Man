@@ -82,7 +82,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
             wall.drawSprite()
 
 running = True  # game loop
-while running:
+while running: 
     timer.tick(frames)
     screen.fill(BLACK)
     drawGrid()
