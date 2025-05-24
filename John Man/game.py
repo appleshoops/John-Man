@@ -48,6 +48,8 @@ bottomLeftSprite = pygame.image.load("John Man/sprites/grid/7.png").convert_alph
 bottomRightSprite = pygame.image.load("John Man/sprites/grid/8.png").convert_alpha()
 vertRightSprite = pygame.image.load("John Man/sprites/grid/10.png").convert_alpha()
 horizontalBottomSprite = pygame.image.load("John Man/sprites/grid/11.png").convert_alpha()
+bottomLeftSmallSprite = pygame.image.load("John Man/sprites/grid/12.png").convert_alpha()
+bottomRightSmallSprite = pygame.image.load("John Man/sprites/grid/13.png").convert_alpha()
 
 # set the title of the window
 title = 'John-Man'
@@ -76,6 +78,10 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     sprite = vertRightSprite
                 case 11:
                     sprite = horizontalBottomSprite
+                case 12:
+                    sprite = bottomLeftSmallSprite
+                case 13:
+                    sprite = bottomRightSmallSprite
                 case _:
                     sprite = emptySprite
             wall = Wall(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, level[i][j], sprite)
