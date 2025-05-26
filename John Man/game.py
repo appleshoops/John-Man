@@ -39,17 +39,6 @@ surface = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT), pygame.RESIZABLE)
 frames = 60
 level = boards
 
-emptySprite = pygame.image.load("John Man/sprites/grid/0.png").convert_alpha()
-vertLeftSprite = pygame.image.load("John Man/sprites/grid/3.png").convert_alpha()
-horizontalTopSprite = pygame.image.load("John Man/sprites/grid/4.png").convert_alpha()
-topRightSprite = pygame.image.load("John Man/sprites/grid/5.png").convert_alpha()
-topLeftSprite = pygame.image.load("John Man/sprites/grid/6.png").convert_alpha()
-bottomLeftSprite = pygame.image.load("John Man/sprites/grid/7.png").convert_alpha()
-bottomRightSprite = pygame.image.load("John Man/sprites/grid/8.png").convert_alpha()
-vertRightSprite = pygame.image.load("John Man/sprites/grid/10.png").convert_alpha()
-horizontalBottomSprite = pygame.image.load("John Man/sprites/grid/11.png").convert_alpha()
-bottomLeftSmallSprite = pygame.image.load("John Man/sprites/grid/12.png").convert_alpha()
-bottomRightSmallSprite = pygame.image.load("John Man/sprites/grid/13.png").convert_alpha()
 
 # set the title of the window
 title = 'John-Man'
@@ -60,32 +49,10 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
     for i in range(len(level)):     # loops through the rows in the board file
         for j in range(len(level[i])):  # loops through all the columns for each row 
             match level[i][j]:
-                case 1:
-                    sprite = emptySprite
-                case 3:
-                    sprite = vertLeftSprite
-                case 4:
-                    sprite = horizontalTopSprite
-                case 5:
-                    sprite = topRightSprite
-                case 6:
-                    sprite = topLeftSprite
-                case 7:
-                    sprite = bottomLeftSprite
-                case 8:
-                    sprite = bottomRightSprite
-                case 10:
-                    sprite = vertRightSprite
-                case 11:
-                    sprite = horizontalBottomSprite
-                case 12:
-                    sprite = bottomLeftSmallSprite
-                case 13:
-                    sprite = bottomRightSmallSprite
+                case 0:
+                    pygame.draw.rect(screen, (0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, 30, 30))
                 case _:
-                    sprite = emptySprite
-            wall = Wall(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, level[i][j], sprite)
-            wall.drawSprite()
+                    pygame.draw.rect(screen, (0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, 30, 30))
 
 running = True  # game loop
 while running: 
