@@ -64,13 +64,8 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     wall = Wall(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, level[i][j], sprite)
                     wall.drawSprite()
                 case _:
-                    sprite = sprites.get(level[i][j], sprites[1])  # default to emptySprite if not found
-                    wall = Wall(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, level[i][j], sprite)
-                    wall.drawSprite()
+                    pygame.draw.rect(screen, (0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, 30, 30))
                     # create a pellet
-                    sprite = sprites.get(level[i][j], sprites[1])
-                    pellet = Pellet(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
-                    pellet.drawSprite
             
 
 running = True  # game loop
