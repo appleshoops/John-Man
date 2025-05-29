@@ -12,7 +12,6 @@ NUMBERCOLS = 32
 SCREENWIDTH = TILEWIDTH * NUMBERCOLS
 SCREENHEIGHT = TILEHEIGHT * NUMBERROWS
 BLACK = (0, 0, 0)
-GREEN = (168, 255, 203)
 
 class Object:   # create object class that works as a parent class for all the objects drawn onto the screen at launch
     def __init__(self, surface, row, col, xPos, yPos, sprite=None):  # add sprite as an optional parameter
@@ -28,8 +27,9 @@ class Object:   # create object class that works as a parent class for all the o
             self.__surface.blit(self.__sprite, (self.__xPos, self.__yPos))
 
 class Wall(Object):     # create subclass specifically for walls 
-    def __init__(self, surface, row, col, xPos, yPos, sprite):
-        super().__init__(surface, row, col, xPos, yPos, sprite)  # special variable for the type of wall
+    def __init__(self, surface, row, col, xPos, yPos, wallType, sprite):
+        super().__init__(surface, row, col, xPos, yPos, sprite)
+        self.__wallType = wallType  # special variable for the type of wall
 
     def drawWall(self, wallType):
         num1 = ((HEIGHT - 50) // 32)
@@ -53,8 +53,7 @@ title = 'John-Man'
 pygame.display.set_caption(title) 
 
 sprite_paths = {
-    1: "John Man/sprites/grid/1.png",
-    2: "John Man/sprites/grid/2.png" 
+    1: "John Man/sprites/grid/1.png"
 }
 sprites = {key: pygame.image.load(path).convert_alpha() for key, path in sprite_paths.items()}
 
@@ -67,12 +66,8 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
                 case 1:
                     sprite = sprites.get(1, sprites[1])  # Ensure sprite for case 1 is loaded
-                    pellet = Pellet(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
-                    pellet.drawSprite()
-                case 2:
-                    sprite = sprites.get(2, sprites[2])
-                    pellet = Pellet(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
-                    pellet.drawSprite()
+                    wall = Wall(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, level[i][j], sprite)
+                    wall.drawSprite()
                 case _:
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
             
