@@ -54,7 +54,7 @@ class DrawRect(Shapes):     # Inheriting from parent class
         newPos = self.ReadXPos()
         if self.__movingLeft:   # if true
             if self.ReadXPos() <= 0:   # if shape is on or below boundary
-                self.__movingLeft = False  # Changed == to =
+                self.__movingLeft = False 
             else:
                 newPos = self.ReadXPos() - moveValue
         else:
