@@ -7,8 +7,8 @@ import math
 # create constant variables
 TILEWIDTH = 30
 TILEHEIGHT = 30
-NUMBERROWS = 32
-NUMBERCOLS = 30
+NUMBERROWS = 30
+NUMBERCOLS = 32
 SCREENWIDTH = TILEWIDTH * NUMBERCOLS
 SCREENHEIGHT = TILEHEIGHT * NUMBERROWS
 BLACK = (0, 0, 0)
@@ -32,6 +32,7 @@ class Wall(Object):     # create subclass specifically for walls
         super().__init__(surface, row, col, xPos, yPos, sprite)  # special variable for the type of wall
 
     def drawWall(self, wallType):
+        num1 = ((HEIGHT - 50) // 32)
         match wallType:
             case 3:
                 pygame.draw.rect(surface, GREEN, )
@@ -43,7 +44,7 @@ class Pellet(Object):
 pygame.init()
 screen = pygame.display.set_mode([SCREENWIDTH, SCREENHEIGHT])
 timer = pygame.time.Clock()
-surface = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT), pygame.RESIZABLE)
+surface = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
 frames = 60
 level = boards
 
@@ -63,7 +64,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
         for j in range(len(level[i])):  # loops through all the columns for each row 
             match level[i][j]:
                 case 0:
-                    pygame.draw.rect(screen, (0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
+                    pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
                 case 1:
                     sprite = sprites.get(1, sprites[1])  # Ensure sprite for case 1 is loaded
                     pellet = Pellet(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
@@ -73,8 +74,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pellet = Pellet(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
                     pellet.drawSprite()
                 case _:
-                    pygame.draw.rect(screen, (0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, 30, 30))
-                    # create a pellet
+                    pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
             
 
 running = True  # game loop
