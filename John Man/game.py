@@ -5,10 +5,10 @@ from board import boards
 import math
 
 # create constant variables
-TILEWIDTH = 30
-TILEHEIGHT = 30
-NUMBERROWS = 30
-NUMBERCOLS = 32
+TILEWIDTH = 28
+TILEHEIGHT = 28
+NUMBERROWS = 32
+NUMBERCOLS = 30
 SCREENWIDTH = TILEWIDTH * NUMBERCOLS
 SCREENHEIGHT = TILEHEIGHT * NUMBERROWS
 BLACK = (0, 0, 0)
@@ -53,7 +53,8 @@ title = 'John-Man'
 pygame.display.set_caption(title) 
 
 sprite_paths = {
-    1: "John Man/sprites/grid/1.png"
+    1: "John Man/sprites/grid/1.png",
+    2: "John Man/sprites/grid/2.png"
 }
 sprites = {key: pygame.image.load(path).convert_alpha() for key, path in sprite_paths.items()}
 
@@ -66,8 +67,12 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
                 case 1:
                     sprite = sprites.get(1, sprites[1])  # Ensure sprite for case 1 is loaded
-                    wall = Wall(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, level[i][j], sprite)
-                    wall.drawSprite()
+                    pellet = Pellet(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
+                    pellet.drawSprite()
+                case 2:
+                    sprite = sprites.get(2, sprites[2])
+                    pellet = Pellet(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
+                    pellet.drawSprite()
                 case _:
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
             
