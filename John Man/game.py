@@ -23,6 +23,21 @@ class Object:   # create object class that works as a parent class for all the o
         self.__yPos = row * TILEHEIGHT
         self.__sprite = sprite
 
+    def ReadSurface(self):
+        return self.__surface
+
+    def ReadRow(self):
+        return self.__row
+    
+    def ReadCol(self):
+        return self.__col
+    
+    def ReadXPos(self):
+        return self.__xPos
+
+    def ReadYPos(self):
+        return self.__yPos
+
     def drawSprite(self):   # draws sprite onto the object
         if self.__sprite:
             self.__surface.blit(self.__sprite, (self.__xPos, self.__yPos))
@@ -33,11 +48,17 @@ class Wall(Object):     # create subclass specifically for walls
         self.__wallType = wallType  # special variable for the type of wall
 
     def drawWall(self):
-        num1 = ((SCREENHEIGHT - 50) // 32) 
-        num2 = (SCREENWIDTH // 30)
+        tileWidth = TILEWIDTH
+        tileHeight = TILEHEIGHT
         match self.__wallType:
             case 3:
-                pygame.draw.rect(self.__surface, GREEN, (self.__col) * num2 + (0.5 * num2), self.__row * num1 + num1, 3)
+                pygame.draw.line(
+                    self.ReadSurface(), 
+                    GREEN,
+                    (self.ReadXPos() + tileWidth // 2, self.ReadYPos()),
+                    (self.ReadXPos() + tileWidth // 2, self.ReadYPos() + tileHeight),
+                    3
+                )
 class Pellet(Object):
     def __init__(self, surface, row, col, xPos, yPos, sprite):
         super().__init__(surface, row, col, xPos, yPos, sprite)
@@ -78,7 +99,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pellet = Pellet(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
                     pellet.drawSprite()
                 case 3:
-                    wall = Wall(surface, level[i], level[j], xPos, yPos, 3)
+                    wall = Wall(surface, j, i, xPos, yPos, 3)
                     wall.drawWall()
                 case _:
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
