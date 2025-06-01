@@ -85,13 +85,13 @@ objectList = []     # create list to house the objects
 def drawGrid():     # create a function to draw all the objects needed on the screen
     for i in range(len(level)):     # loops through the rows in the board file
         for j in range(len(level[i])):  # loops through all the columns for each row 
-            xPos = level[i] * TILEWIDTH
-            yPos = level[j] * TILEHEIGHT
+            xPos = j * TILEWIDTH
+            yPos = i * TILEHEIGHT
             match level[i][j]:
                 case 0:
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
                 case 1:
-                    sprite = sprites.get(1, sprites[1])  # Ensure sprite for case 1 is loaded
+                    sprite = sprites.get(1, sprites[1])
                     pellet = Pellet(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
                     pellet.drawSprite()
                 case 2:
@@ -99,7 +99,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pellet = Pellet(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
                     pellet.drawSprite()
                 case 3:
-                    wall = Wall(surface, j, i, xPos, yPos, 3)
+                    wall = Wall(surface, i, j, xPos, yPos, 3)
                     wall.drawWall()
                 case _:
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
