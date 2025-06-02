@@ -13,7 +13,8 @@ SCREENWIDTH = TILEWIDTH * NUMBERCOLS
 SCREENHEIGHT = TILEHEIGHT * NUMBERROWS
 BLACK = (0, 0, 0)
 GREEN = (150, 255, 197)
-VERTICAL_WALL_OFFSET = 5
+WALL_THICKNESS = 3
+WALL_OFFSET = 0  # Removed offset to make walls connect properly
 
 class Object:   # create object class that works as a parent class for all the objects drawn onto the screen at launch
     def __init__(self, surface, row, col, xPos, yPos, sprite=None):  # add sprite as an optional parameter
@@ -41,7 +42,13 @@ class Object:   # create object class that works as a parent class for all the o
 
     def drawSprite(self):   # draws sprite onto the object
         if self.__sprite:
-            self.__surface.blit(self.__sprite, (self.__xPos, self.__yPos))
+            # Calculate the center position of the tile
+            sprite_width = self.__sprite.get_width()
+            sprite_height = self.__sprite.get_height()
+            center_x = self.__xPos + (TILEWIDTH - sprite_width) // 2
+            center_y = self.__yPos + (TILEHEIGHT - sprite_height) // 2
+            # Draw the sprite at the center of the tile
+            self.__surface.blit(self.__sprite, (center_x, center_y))
 
 class Wall(Object):     # create subclass specifically for walls 
     def __init__(self, surface, row, col, xPos, yPos, wallType):
@@ -51,31 +58,84 @@ class Wall(Object):     # create subclass specifically for walls
     def drawWall(self):
         tileWidth = TILEWIDTH
         tileHeight = TILEHEIGHT
-        offset = VERTICAL_WALL_OFFSET
+        centerX = self.ReadXPos() + tileWidth // 2
+        centerY = self.ReadYPos() + tileHeight // 2
         match self.__wallType:
-            case 3:
+            case 3:  # Vertical line
                 pygame.draw.line(
-                    self.ReadSurface(), 
+                    self.ReadSurface(),
                     GREEN,
-                    (self.ReadXPos() + tileWidth // 2, self.ReadYPos()),
-                    (self.ReadXPos() + tileWidth // 2, self.ReadYPos() + tileHeight),
-                    3
+                    (centerX, self.ReadYPos() + WALL_OFFSET),
+                    (centerX, self.ReadYPos() + tileHeight - WALL_OFFSET),
+                    WALL_THICKNESS
                 )
             case 4:  # Horizontal line
                 pygame.draw.line(
-                self.ReadSurface(), 
-                GREEN,
-                (self.ReadXPos(), self.ReadYPos() + tileHeight // 2),
-                (self.ReadXPos() + tileWidth, self.ReadYPos() + tileHeight // 2),
-                3
-            )
-            case 10:
-                pygame.draw.line(
-                    self.ReadSurface(), 
+                    self.ReadSurface(),
                     GREEN,
-                    (self.ReadXPos() + tileWidth // 2 + offset, self.ReadYPos()),
-                    (self.ReadXPos() + tileWidth // 2 + offset, self.ReadYPos() + tileHeight),
-                    3
+                    (self.ReadXPos() + WALL_OFFSET, centerY),
+                    (self.ReadXPos() + tileWidth - WALL_OFFSET, centerY),
+                    WALL_THICKNESS
+                )
+            case 5:  # Top right corner
+                pygame.draw.line(
+                    self.ReadSurface(),
+                    GREEN,
+                    (self.ReadXPos() + WALL_OFFSET, centerY),
+                    (centerX, centerY),
+                    WALL_THICKNESS
+                )
+                pygame.draw.line(
+                    self.ReadSurface(),
+                    GREEN,
+                    (centerX, centerY),
+                    (centerX, self.ReadYPos() + tileHeight - WALL_OFFSET),
+                    WALL_THICKNESS
+                )
+            case 6:  # Top left corner
+                pygame.draw.line(
+                    self.ReadSurface(),
+                    GREEN,
+                    (centerX, self.ReadYPos() + tileHeight - WALL_OFFSET),
+                    (centerX, centerY),
+                    WALL_THICKNESS
+                )
+                pygame.draw.line(
+                    self.ReadSurface(),
+                    GREEN,
+                    (centerX, centerY),
+                    (self.ReadXPos() + tileWidth - WALL_OFFSET, centerY),
+                    WALL_THICKNESS
+                )
+            case 7:  # Bottom left corner
+                pygame.draw.line(
+                    self.ReadSurface(),
+                    GREEN,
+                    (centerX, self.ReadYPos() + WALL_OFFSET),
+                    (centerX, centerY),
+                    WALL_THICKNESS
+                )
+                pygame.draw.line(
+                    self.ReadSurface(),
+                    GREEN,
+                    (centerX, centerY),
+                    (self.ReadXPos() + tileWidth - WALL_OFFSET, centerY),
+                    WALL_THICKNESS
+                )
+            case 8:  # Bottom right corner
+                pygame.draw.line(
+                    self.ReadSurface(),
+                    GREEN,
+                    (centerX, self.ReadYPos() + WALL_OFFSET),
+                    (centerX, centerY),
+                    WALL_THICKNESS
+                )
+                pygame.draw.line(
+                    self.ReadSurface(),
+                    GREEN,
+                    (centerX, centerY),
+                    (self.ReadXPos() + WALL_OFFSET, centerY),
+                    WALL_THICKNESS
                 )
 class Pellet(Object):
     def __init__(self, surface, row, col, xPos, yPos, sprite):
@@ -105,16 +165,17 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
         for j in range(len(level[i])):  # loops through all the columns for each row 
             xPos = j * TILEWIDTH
             yPos = i * TILEHEIGHT
+            
             match level[i][j]:
                 case 0:
-                    pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
+                    pygame.draw.rect(surface, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
                 case 1:
                     sprite = sprites.get(1, sprites[1])
-                    pellet = Pellet(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
+                    pellet = Pellet(surface, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
                     pellet.drawSprite()
                 case 2:
                     sprite = sprites.get(2, sprites[2])
-                    pellet = Pellet(screen, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
+                    pellet = Pellet(surface, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
                     pellet.drawSprite()
                 case 3:
                     wall = Wall(surface, i, j, xPos, yPos, 3)
@@ -122,8 +183,17 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                 case 4:
                     wall = Wall(surface, i, j, xPos, yPos, 4)
                     wall.drawWall()
-                case 10:
-                    wall = Wall(surface, i, j, xPos, yPos, 10)
+                case 5:  # Top right corner
+                    wall = Wall(surface, i, j, xPos, yPos, 5)
+                    wall.drawWall()
+                case 6:  # Top left corner
+                    wall = Wall(surface, i, j, xPos, yPos, 6)
+                    wall.drawWall()
+                case 7:  # Bottom left corner
+                    wall = Wall(surface, i, j, xPos, yPos, 7)
+                    wall.drawWall()
+                case 8:  # Bottom right corner
+                    wall = Wall(surface, i, j, xPos, yPos, 8)
                     wall.drawWall()
                 case _:
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
