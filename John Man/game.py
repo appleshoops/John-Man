@@ -140,7 +140,13 @@ class Wall(Object):     # create subclass specifically for walls
 class Pellet(Object):
     def __init__(self, surface, row, col, xPos, yPos, sprite):
         super().__init__(surface, row, col, xPos, yPos, sprite)
+class Player(Object):
+    def __init__(self, surface, row, col, xPos, yPos, sprite=None):
+        super().__init__(surface, row, col, xPos, yPos, sprite)
 
+    def draw_sprite(self):
+        if direction == 0:
+            screen.blit(sprites.get)
 # setting up the game including the screen size, clock, surface, and taking the level from the boards file       
 pygame.init()
 screen = pygame.display.set_mode([SCREENWIDTH, SCREENHEIGHT])
@@ -155,9 +161,16 @@ pygame.display.set_caption(title)
 
 sprite_paths = {
     1: "John Man/sprites/grid/1.png",
-    2: "John Man/sprites/grid/2.png"
+    2: "John Man/sprites/grid/2.png",
+    3: "John Man/sprites/john/3.png",
+    4: "John Man/sprites/john/4.png",
+    5: "John Man/sprites/john/5.png"
 }
 sprites = {key: pygame.image.load(path).convert_alpha() for key, path in sprite_paths.items()}
+player_sprites = []
+for i in range(4, 6):
+    player_sprites.append(pygame.transform.scale(pygame.image.load(sprites.get(i, sprites[i])), (45, 45 )))
+    print(player_sprites)
 
 objectList = []     # create list to house the objects
 def drawGrid():     # create a function to draw all the objects needed on the screen
@@ -197,13 +210,16 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     wall.drawWall()
                 case _:
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
-            
+
+def drawPlayer():
+    pass 
 
 running = True  # game loop
 while running: 
     timer.tick(frames)
     screen.fill(BLACK)
     drawGrid()
+    drawPlayer()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
