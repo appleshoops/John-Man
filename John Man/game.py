@@ -2,7 +2,9 @@
 import pygame
 from pygame.locals import *
 from board import boards
-from typing import override
+from john import Player
+from object import Object
+import math
 
 
 # create constant variables
@@ -16,40 +18,6 @@ BLACK = (0, 0, 0)
 GREEN = (150, 255, 197)
 WALL_THICKNESS = 3
 WALL_OFFSET = 0  # Removed offset to make walls connect properly
-
-class Object:   # create object class that works as a parent class for all the objects drawn onto the screen at launch
-    def __init__(self, surface, row, col, xPos, yPos, sprite=None):  # add sprite as an optional parameter
-        self.__surface = surface
-        self.__row = row
-        self.__col = col
-        self.__xPos = col * TILEWIDTH
-        self.__yPos = row * TILEHEIGHT
-        self.__sprite = sprite
-
-    def ReadSurface(self):
-        return self.__surface
-
-    def ReadRow(self):
-        return self.__row
-    
-    def ReadCol(self):
-        return self.__col
-    
-    def ReadXPos(self):
-        return self.__xPos
-
-    def ReadYPos(self):
-        return self.__yPos
-
-    def drawSprite(self):   # draws sprite onto the object
-        if self.__sprite:
-            # Calculate the center position of the tile
-            sprite_width = self.__sprite.get_width()
-            sprite_height = self.__sprite.get_height()
-            center_x = self.__xPos + (TILEWIDTH - sprite_width) // 2
-            center_y = self.__yPos + (TILEHEIGHT - sprite_height) // 2
-            # Draw the sprite at the center of the tile
-            self.__surface.blit(self.__sprite, (center_x, center_y))
 
 class Wall(Object):     # create subclass specifically for walls 
     def __init__(self, surface, row, col, xPos, yPos, wallType):
@@ -141,26 +109,7 @@ class Wall(Object):     # create subclass specifically for walls
 class Pellet(Object):
     def __init__(self, surface, row, col, xPos, yPos, sprite):
         super().__init__(surface, row, col, xPos, yPos, sprite)
-class Player(Object): # player is a subclass of object from game.py
-    def __init__(self, surface, row, col, xPos, yPos, direction, sprite=None):
-        super().__init__(surface, row, col, xPos, yPos)
-        self.direction = 0
-        
-        self.__player_images = []
-        for i in range(1, 4):
-            self.__player_images.append(pygame.transform.scale(pygame.image.load(f'John Man/sprites/john/{i}.png'), (45, 45))) # load the player sprites into a list
 
-    @override
-    def drawSprite(self):
-        # the 4 directions john can face (0=R, 1=L, 2=U, 3=D)
-        if self.direction == 0:
-            self.ReadSurface().blit(self.__player_images[counter // 5], (self.ReadXPos(), self.ReadYPos())) # cycle the john man frames on a timer
-        elif self.direction == 1:
-            self.ReadSurface().blit(pygame.transform.flip(self.__player_images[counter // 5], True, False,) (self.ReadXPos(), self.ReadYPos())) # the pygame transform flip changes the direction of the sprite and the true/false tells it what axis to flip
-        elif self.direction == 2:
-            self.ReadSurface().blit(pygame.transform.rotate(self.__player_images[counter // 5], 90), (self.ReadXPos(), self.ReadYPos())) # this time it uses rotate instead of flip because its easier
-        elif self.direction == 3:
-            self.ReadSurface().blit(pygame.transform.rotate(self.__player_images[counter // 5], 270), (self.ReadXPos(), self.ReadYPos())) # and 270 degrees for down
 # setting up the game including the screen size, clock, surface, and taking the level from the boards file       
 pygame.init()
 screen = pygame.display.set_mode([SCREENWIDTH, SCREENHEIGHT])
@@ -224,8 +173,11 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
 
 def drawPlayer():
+    player_images = []
+    for i in range(1, 4):
+        self.player_images.append(pygame.transform.scale(pygame.image.load(f'John Man/sprites/john/{i}.png'), (45, 45))) # load the player sprites into a list
 
-    player = Player(surface, 19, 15, 19 * TILEWIDTH, 15 * TILEHEIGHT, 0)
+    player = Player(surface, 19, 15, 19 * TILEWIDTH, 15 * TILEHEIGHT, 0, player_images)
     player.drawSprite()
 
 running = True  # game loop
