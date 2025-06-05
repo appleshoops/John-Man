@@ -1,8 +1,5 @@
 # imports
 import pygame
-import math
-import john
-import object
 from pygame.locals import *
 from board import boards
 from typing import override
