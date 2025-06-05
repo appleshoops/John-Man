@@ -2,8 +2,10 @@
 import pygame
 from pygame.locals import *
 from board import boards
-import john
+from john import Player
+from object import Object
 import math
+
 
 # create constant variables
 TILEWIDTH = 28
@@ -16,40 +18,6 @@ BLACK = (0, 0, 0)
 GREEN = (150, 255, 197)
 WALL_THICKNESS = 3
 WALL_OFFSET = 0  # Removed offset to make walls connect properly
-
-class Object:   # create object class that works as a parent class for all the objects drawn onto the screen at launch
-    def __init__(self, surface, row, col, xPos, yPos, sprite=None):  # add sprite as an optional parameter
-        self.__surface = surface
-        self.__row = row
-        self.__col = col
-        self.__xPos = col * TILEWIDTH
-        self.__yPos = row * TILEHEIGHT
-        self.__sprite = sprite
-
-    def ReadSurface(self):
-        return self.__surface
-
-    def ReadRow(self):
-        return self.__row
-    
-    def ReadCol(self):
-        return self.__col
-    
-    def ReadXPos(self):
-        return self.__xPos
-
-    def ReadYPos(self):
-        return self.__yPos
-
-    def drawSprite(self):   # draws sprite onto the object
-        if self.__sprite:
-            # Calculate the center position of the tile
-            sprite_width = self.__sprite.get_width()
-            sprite_height = self.__sprite.get_height()
-            center_x = self.__xPos + (TILEWIDTH - sprite_width) // 2
-            center_y = self.__yPos + (TILEHEIGHT - sprite_height) // 2
-            # Draw the sprite at the center of the tile
-            self.__surface.blit(self.__sprite, (center_x, center_y))
 
 class Wall(Object):     # create subclass specifically for walls 
     def __init__(self, surface, row, col, xPos, yPos, wallType):
@@ -205,7 +173,11 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
 
 def drawPlayer():
-    player = john.Player(surface, 19, 15, 19 * TILEWIDTH, 15 * TILEHEIGHT)
+    player_images = []
+    for i in range(1, 4):
+        self.player_images.append(pygame.transform.scale(pygame.image.load(f'John Man/sprites/john/{i}.png'), (45, 45))) # load the player sprites into a list
+
+    player = Player(surface, 19, 15, 19 * TILEWIDTH, 15 * TILEHEIGHT, 0, player_images)
     player.drawSprite()
 
 running = True  # game loop

@@ -1,17 +1,14 @@
 from typing import override
+from object import Object
 import pygame
 import math
 import game
 
-class Player(game.Object): # player is a subclass of object from game.py
-    def __init__(self, surface, row, col, xPos, yPos, player_images, direction, sprite=None):
+class Player(Object): # player is a subclass of object from game.py
+    def __init__(self, surface, row, col, xPos, yPos, direction, player_images, sprite=None):
         super().__init__(surface, row, col, xPos, yPos)
         self.direction = 0
-
-        self.player_images = []
-        for i in range(1, 4):
-            self.player_images.append(pygame.transform.scale(pygame.image.load(f'John Man/sprites/john/{i}.png'), (45, 45))) # load the player sprites into a list
-        print(player_images)
+        self.player_images = player_images
 
     @override
     def drawSprite(self):
