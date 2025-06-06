@@ -1,6 +1,5 @@
 # imports
 import pygame
-import os
 
 from board import boards
 from typing import override
@@ -143,22 +142,32 @@ class Pellet(Object):
     def __init__(self, surface, row, col, xPos, yPos, sprite):
         super().__init__(surface, row, col, xPos, yPos, sprite)
 class Player(Object): # player is a subclass of object from game.py
-    def __init__(self, surface, row, col, xPos, yPos, direction, player_images, sprite=None):
+    def __init__(self, surface, row, col, xPos, yPos, direction, player_images):
         super().__init__(surface, row, col, xPos, yPos)
-        self.direction = 0
+        self.direction = direction
         self.player_images = player_images
 
     @override
     def drawSprite(self):
-        # the 4 directions john can face (0=R, 1=L, 2=U, 3=D)
-        if self.direction == 0:
-            screen.blit(self.player_images[counter // 5], (self.ReadXPos(), self.ReadYPos())) # cycle the john man frames on a timer
-        elif self.direction == 1:
-            screen.blit(pygame.transform.flip(self.player_images[counter // 5], True, False,) (self.ReadXPos(), self.ReadYPos())) # the pygame transform flip changes the direction of the sprite, and the true/false tells it what axis to flip
-        elif self.direction == 2:
-            screen.blit(pygame.transform.rotate(self.player_images[counter // 5], 90), (self.ReadXPos(), self.ReadYPos())) # this time it uses rotate instead of flip because its easier
-        elif self.direction == 3:
-            screen.blit(pygame.transform.rotate(self.player_images[counter // 5], 270), (self.ReadXPos(), self.ReadYPos())) # and 270 degrees for down
+        current_sprite = None
+        
+        # Get the current sprite based on direction
+        if self.direction == 0:  # Right
+            current_sprite = self.player_images[counter // 5]
+        elif self.direction == 1:  # Left
+            current_sprite = pygame.transform.flip(self.player_images[counter // 5], True, False)
+        elif self.direction == 2:  # Up
+            current_sprite = pygame.transform.rotate(self.player_images[counter // 5], 90)
+        elif self.direction == 3:  # Down
+            current_sprite = pygame.transform.rotate(self.player_images[counter // 5], 270)
+        
+        if current_sprite:
+            # Center the sprite in the tile
+            sprite_width = current_sprite.get_width()
+            sprite_height = current_sprite.get_height()
+            center_x = self.ReadXPos() + (TILEWIDTH - sprite_width) // 2
+            center_y = self.ReadYPos() + (TILEHEIGHT - sprite_height) // 2
+            self.ReadSurface().blit(current_sprite, (center_x, center_y))
 # setting up the game including the screen size, clock, surface, and taking the level from the boards file       
 pygame.init()
 screen = pygame.display.set_mode([SCREENWIDTH, SCREENHEIGHT])
@@ -170,56 +179,52 @@ counter = 0
 
 # set the title of the window
 title = 'John-Man'
-pygame.display.set_caption(title) 
-
-# At the top of your file, add:
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+pygame.display.set_caption(title)
 
 sprite_paths = {
-    1: os.path.join(BASE_DIR, "John Man", "sprites", "grid", "1.png"),
-    2: os.path.join(BASE_DIR, "John Man", "sprites", "grid", "2.png"),
-    3: os.path.join(BASE_DIR, "John Man", "sprites", "john", "3.png")
+    0: "sprites/grid/0.png",
+    1: "sprites/grid/1.png",
+    2: "sprites/grid/2.png"
 }
 sprites = {key: pygame.image.load(path).convert_alpha() for key, path in sprite_paths.items()}
-
 
 objectList = []     # create list to house the objects
 def drawGrid():     # create a function to draw all the objects needed on the screen
     for i in range(len(level)):     # loops through the rows in the board file
-        for j in range(len(level[i])):  # loops through all the columns for each row 
-            xPos = j * TILEWIDTH
-            yPos = i * TILEHEIGHT
-            
-            pygame.draw.rect(surface, (255, 0, 0), (xPos, yPos, TILEWIDTH, TILEHEIGHT), 1)
+        for j in range(len(level[i])):  # loops through all the columns for each row
+            x_pos = j * TILEWIDTH
+            y_pos = i * TILEHEIGHT
+
+            # pygame.draw.rect(surface, (255, 0, 0), (x_pos, y_pos, TILEWIDTH, TILEHEIGHT), 1)
 
             match level[i][j]:
-                case 0:
+                case 0: # blank square
                     pygame.draw.rect(surface, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
-                case 1:
+                case 1: # little dot
                     sprite = sprites.get(1, sprites[1])
                     pellet = Pellet(surface, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
                     pellet.drawSprite()
-                case 2:
+                case 2: # lobster (big dot)
                     sprite = sprites.get(2, sprites[2])
                     pellet = Pellet(surface, i, j, j * TILEWIDTH, i * TILEHEIGHT, sprite)
                     pellet.drawSprite()
                 case 3:
-                    wall = Wall(surface, i, j, xPos, yPos, 3)
+                    wall = Wall(surface, i, j, x_pos, y_pos, 3)
                     wall.drawWall()
                 case 4:
-                    wall = Wall(surface, i, j, xPos, yPos, 4)
+                    wall = Wall(surface, i, j, x_pos, y_pos, 4)
                     wall.drawWall()
                 case 5:  # Top right corner
-                    wall = Wall(surface, i, j, xPos, yPos, 5)
+                    wall = Wall(surface, i, j, x_pos, y_pos, 5)
                     wall.drawWall()
                 case 6:  # Top left corner
-                    wall = Wall(surface, i, j, xPos, yPos, 6)
+                    wall = Wall(surface, i, j, x_pos, y_pos, 6)
                     wall.drawWall()
                 case 7:  # Bottom left corner
-                    wall = Wall(surface, i, j, xPos, yPos, 7)
+                    wall = Wall(surface, i, j, x_pos, y_pos, 7)
                     wall.drawWall()
                 case 8:  # Bottom right corner
-                    wall = Wall(surface, i, j, xPos, yPos, 8)
+                    wall = Wall(surface, i, j, x_pos, y_pos, 8)
                     wall.drawWall()
                 case _:
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
@@ -227,9 +232,12 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
 def drawPlayer():
     player_images = []
     for i in range(1, 4):
-        player_images.append(pygame.transform.scale(pygame.image.load(f'John Man/sprites/john/{i}.png'), (45, 45))) # load the player sprites into a list
+        sprite = pygame.image.load(f'sprites/john/{i}.png').convert_alpha()
+        sprite = pygame.transform.scale(sprite, (TILEWIDTH, TILEHEIGHT))  # Scale to tile size (28x28)
+        sprite.set_colorkey((255, 255, 255))  # Make white transparent
+        player_images.append(sprite)
 
-    player = Player(surface, 19, 15, 19 * TILEWIDTH, 15 * TILEHEIGHT, 0, player_images)
+    player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, player_images)
     player.drawSprite()
 
 running = True  # game loop
