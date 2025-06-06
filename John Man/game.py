@@ -152,14 +152,17 @@ class Player(Object): # player is a subclass of object from game.py
         current_sprite = None
         
         # Get the current sprite based on direction
+        # Use modulo to ensure index stays within bounds (0, 1, 2)
+        sprite_index = (counter // 4) % len(self.player_images)
+        
         if self.direction == 0:  # Right
-            current_sprite = self.player_images[counter // 5]
+            current_sprite = self.player_images[sprite_index]
         elif self.direction == 1:  # Left
-            current_sprite = pygame.transform.flip(self.player_images[counter // 5], True, False)
+            current_sprite = pygame.transform.flip(self.player_images[sprite_index], True, False)
         elif self.direction == 2:  # Up
-            current_sprite = pygame.transform.rotate(self.player_images[counter // 5], 90)
+            current_sprite = pygame.transform.rotate(self.player_images[sprite_index], 90)
         elif self.direction == 3:  # Down
-            current_sprite = pygame.transform.rotate(self.player_images[counter // 5], 270)
+            current_sprite = pygame.transform.rotate(self.player_images[sprite_index], 270)
         
         if current_sprite:
             # Center the sprite in the tile
@@ -229,25 +232,39 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                 case _:
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
 
+player_images = []
+player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, player_images)
 def drawPlayer():
-    player_images = []
     for i in range(1, 4):
         sprite = pygame.image.load(f'sprites/john/{i}.png').convert_alpha()
-        sprite = pygame.transform.scale(sprite, (TILEWIDTH, TILEHEIGHT))  # Scale to tile size (28x28)
+       #sprite = pygame.transform.scale(sprite, (TILEWIDTH, TILEHEIGHT))  # Scale to tile size (28x28)
         sprite.set_colorkey((255, 255, 255))  # Make white transparent
         player_images.append(sprite)
-
-    player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, player_images)
     player.drawSprite()
 
 running = True  # game loop
-while running: 
+while running:
     timer.tick(frames)
+
+    if counter < 15:
+        counter += 1
+    else:
+        counter = 0
+
     screen.fill(BLACK)
     drawGrid()
     drawPlayer()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                player.direction = 0
+            if event.key == pygame.K_LEFT:
+                player.direction = 1
+            if event.key == pygame.K_UP:
+                player.direction = 2
+            if event.key == pygame.K_DOWN:
+                player.direction = 3
     pygame.display.flip()
 pygame.quit()
