@@ -155,9 +155,10 @@ class Pellet(Object):
     def __init__(self, plane, row, col, x_pos, yPos, sprite):
         super().__init__(plane, row, col, x_pos, yPos, sprite)
 class Player(Object): # player is a subclass of object from game.py
-    def __init__(self, plane, row, col, x_pos, yPos, direction, player_images):
-        super().__init__(plane, row, col, x_pos, yPos)
+    def __init__(self, plane, row, col, x_pos, y_pos, direction, direction_command, player_images):
+        super().__init__(plane, row, col, x_pos, y_pos)
         self.direction = direction
+        self.direction_command = direction_command
         self.player_images = player_images
 
     @override
@@ -185,24 +186,39 @@ class Player(Object): # player is a subclass of object from game.py
             self.readSurface().blit(current_sprite, (center_x, center_y))
     def checkPosition(self):
         turns = [False, False, False, False]  # [right, left, up, down]
-# Check if the player can turn in each direction based on the level layout
-        next_right = (self.readCentreXPos() + TILEWIDTH) // TILEWIDTH
-        if next_right < NUMBERCOLS and level[self.readCol()][next_right] < 3:
+        
+        # Get current row and column positions
+        current_row = self.readRow()
+        current_col = self.readCol()
+        
+        # Check right movement
+        next_col = current_col + 1
+        if next_col < NUMBERCOLS and level[current_row][next_col] < 3:
             turns[0] = True
-
-        next_left = (self.readCentreXPos() - TILEWIDTH) // TILEWIDTH
-        if next_left < NUMBERCOLS and level[self.readCol()][next_left] < 3:
+        
+        # Check left movement  
+        next_col = current_col - 1
+        if next_col >= 0 and level[current_row][next_col] < 3:
             turns[1] = True
-
-        next_up = (self.readCentreYPos() - TILEHEIGHT) // TILEHEIGHT
-        if next_up < NUMBERCOLS and level[self.readCol()][next_up] < 3:
+        
+        # Check up movement
+        next_row = current_row - 1
+        if next_row >= 0 and level[next_row][current_col] < 3:
             turns[2] = True
-
-        next_down = (self.readCentreYPos() + TILEHEIGHT) // TILEHEIGHT
-        if next_down < NUMBERCOLS and level[self.readCol()][next_down] < 3:
+        
+        # Check down movement
+        next_row = current_row + 1
+        if next_row < NUMBERROWS and level[next_row][current_col] < 3:
             turns[3] = True
-
+        
         return turns
+    def movePlayer(self):
+        for i in range(4):
+            if self.direction_command == i and turns_allowed[i]: # check if the player can turn in the direction they want to go
+                self.direction = i
+
+
+
 # setting up the game including the screen size, clock, surface, and taking the level from the boards file
 pygame.init()
 screen = pygame.display.set_mode([SCREENWIDTH, SCREENHEIGHT])
@@ -266,7 +282,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
 
 player_sprites = []
-player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, player_sprites)
+player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites)
 def drawPlayer():
     for i in range(1, 4):
         sprite = pygame.image.load(f'sprites/john/{i}.png').convert_alpha()
@@ -288,17 +304,28 @@ while running:
     screen.fill(BLACK)
     drawGrid()
     drawPlayer()
+    turns_allowed = player.checkPosition() # Check if the player can turn in each direction
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT:
-                player.direction = 0
+                player.direction_command = 0
             if event.key == pygame.K_LEFT:
-                player.direction = 1
+                player.direction_command = 1
             if event.key == pygame.K_UP:
-                player.direction = 2
+                player.direction_command = 2
             if event.key == pygame.K_DOWN:
-                player.direction = 3
+                player.direction_command = 3
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_RIGHT and player.direction_command == 0:
+                player.direction_command = 0
+            if event.key == pygame.K_LEFT and player.direction_command == 1:
+                player.direction_command = 1
+            if event.key == pygame.K_UP and player.direction_command == 2:
+                player.direction_command = 2
+            if event.key == pygame.K_DOWN and player.direction_command == 3:
+                player.direction_command = 3
+    player.movePlayer()
     pygame.display.flip()
 pygame.quit()
