@@ -16,7 +16,7 @@ WALL_THICKNESS = 3
 WALL_OFFSET = 0  # Removed offset to make walls connect properly
 
 class Object:  # create object class that works as a parent class for all the objects drawn onto the screen at launch
-    def __init__(self, plane, row, col, x_pos, yPos, sprite=None):  # add sprite as an optional parameter
+    def __init__(self, plane, row, col, xPos, yPos, sprite=None):  # add sprite as an optional parameter
         self.__surface = plane
         self.__row = row
         self.__col = col
@@ -153,13 +153,14 @@ class Pellet(Object):
     def __init__(self, plane, row, col, x_pos, yPos, sprite):
         super().__init__(plane, row, col, x_pos, yPos, sprite)
 class Player(Object): # player is a subclass of object from game.py
-    def __init__(self, plane, row, col, x_pos, y_pos, direction, direction_command, player_images, player_speed):
+    def __init__(self, plane, row, col, x_pos, y_pos, direction, direction_command, player_images, player_speed, score):
         super().__init__(plane, row, col, x_pos, y_pos)
         self.direction = direction
         self.direction_command = direction_command
         self.player_images = player_images
         self.player_speed = player_speed
         self.move_counter = 0
+        self.score = score
 
     @override
     def drawSprite(self):
@@ -190,8 +191,7 @@ class Player(Object): # player is a subclass of object from game.py
         # Get current row and column positions
         current_row = self.readRow()
         current_col = self.readCol()
-        
-        # Check right movement
+
         next_col = current_col + 1
         if next_col < NUMBERCOLS and level[current_row][next_col] < 3:
             turns[0] = True
@@ -252,9 +252,8 @@ class Player(Object): # player is a subclass of object from game.py
                     if new_row < NUMBERROWS:
                         self._Object__row = new_row
                         self._Object__yPos = new_row * TILEHEIGHT
-
-
-        
+    def checkCollisions(self):
+        if 0 < self.readXPos() < TILEWIDTH:
 
 
 
@@ -321,7 +320,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
 
 player_sprites = []
-player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 5)
+player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 5, 0)
 def drawPlayer():
     for i in range(1, 4):
         sprite = pygame.image.load(f'sprites/john/{i}.png').convert_alpha()
