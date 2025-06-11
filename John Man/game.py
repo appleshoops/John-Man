@@ -1,9 +1,7 @@
 # imports
 import pygame
-
 from board import boards
 from typing import override
-
 
 # create constant variables
 TILEWIDTH = 28
@@ -155,11 +153,13 @@ class Pellet(Object):
     def __init__(self, plane, row, col, x_pos, yPos, sprite):
         super().__init__(plane, row, col, x_pos, yPos, sprite)
 class Player(Object): # player is a subclass of object from game.py
-    def __init__(self, plane, row, col, x_pos, y_pos, direction, direction_command, player_images):
+    def __init__(self, plane, row, col, x_pos, y_pos, direction, direction_command, player_images, player_speed):
         super().__init__(plane, row, col, x_pos, y_pos)
         self.direction = direction
         self.direction_command = direction_command
         self.player_images = player_images
+        self.player_speed = player_speed
+        self.move_counter = 0
 
     @override
     def drawSprite(self):
@@ -217,6 +217,45 @@ class Player(Object): # player is a subclass of object from game.py
             if self.direction_command == i and turns_allowed[i]: # check if the player can turn in the direction they want to go
                 self.direction = i
 
+        self.move_counter += 1
+
+        if self.move_counter >= self.player_speed:
+            self.move_counter = 0
+
+            if turns_allowed[self.direction]:
+                if self.direction == 0:  # Moving right
+                    current_col = self.readCol()
+                    new_col = current_col + 1
+                    if new_col >= NUMBERCOLS:
+                        new_col = 0
+                    self._Object__col = new_col
+                    self._Object__xPos = new_col * TILEWIDTH
+
+                elif self.direction == 1:  # Moving left
+                    current_col = self.readCol()
+                    new_col = current_col - 1
+                    if new_col < 0:
+                        new_col = NUMBERCOLS - 1  # Teleport to right side
+                    self._Object__col = new_col
+                    self._Object__xPos = new_col * TILEWIDTH
+
+                elif self.direction == 2:  # Moving up
+                    current_row = self.readRow()
+                    new_row = current_row - 1
+                    if new_row >= 0:
+                        self._Object__row = new_row
+                        self._Object__yPos = new_row * TILEHEIGHT
+
+                elif self.direction == 3:  # Moving down
+                    current_row = self.readRow()
+                    new_row = current_row + 1
+                    if new_row < NUMBERROWS:
+                        self._Object__row = new_row
+                        self._Object__yPos = new_row * TILEHEIGHT
+
+
+        
+
 
 
 # setting up the game including the screen size, clock, surface, and taking the level from the boards file
@@ -247,7 +286,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
             x_pos = j * TILEWIDTH
             y_pos = i * TILEHEIGHT
 
-            # pygame.draw.rect(surface, (255, 0, 0), (x_pos, y_pos, TILEWIDTH, TILEHEIGHT), 1)
+            pygame.draw.rect(surface, (255, 0, 0), (x_pos, y_pos, TILEWIDTH, TILEHEIGHT), 1)
 
             match level[i][j]:
                 case 0: # blank square
@@ -282,7 +321,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
 
 player_sprites = []
-player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites)
+player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 5)
 def drawPlayer():
     for i in range(1, 4):
         sprite = pygame.image.load(f'sprites/john/{i}.png').convert_alpha()
