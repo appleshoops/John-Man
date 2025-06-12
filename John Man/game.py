@@ -157,7 +157,7 @@ class Pellet(Object):
     def __init__(self, plane, row, col, x_pos, yPos, sprite):
         super().__init__(plane, row, col, x_pos, yPos, sprite)
 class Player(Object): # player is a subclass of object from game.py
-    def __init__(self, plane, row, col, x_pos, y_pos, direction, direction_command, player_images, player_speed, points, power_up):
+    def __init__(self, plane, row, col, x_pos, y_pos, direction, direction_command, player_images, player_speed, points, power, power_counter):
         super().__init__(plane, row, col, x_pos, y_pos)
         self.direction = direction
         self.direction_command = direction_command
@@ -165,14 +165,16 @@ class Player(Object): # player is a subclass of object from game.py
         self.player_speed = player_speed
         self.move_counter = 0
         self.points = points
-        self.power_up = power_up
+        self.power = power
+        self.power_counter = power_counter
+        self.eaten_ghosts = [False, False, False, False]
 
     @override
     def drawSprite(self):
         current_sprite = None
         # Get the current sprite based on direction
-        # Use modulo to ensure index stays within bounds (0, 1, 2)
-        sprite_index = (counter // 4) % len(self.player_images)
+        # Use a smaller divisor for smoother animation (was 4, now 2)
+        sprite_index = (counter // 2) % len(self.player_images)
         
         if self.direction == 0:  # Right
             current_sprite = self.player_images[sprite_index]
@@ -267,12 +269,18 @@ class Player(Object): # player is a subclass of object from game.py
         if current_tile == 2: # Check if the player is on a dot
             level[self.readRow()][self.readCol()] = 0
             self.points += 10
-            self.power_up = True
+            self.power = True
+            self.power_counter = 0
             title = f'John Man — Score: {self.points}'
             pygame.display.set_caption(title)
-
-
-
+        return self.points, self.power, self.power_counter, self.eaten_ghosts
+    def powerUp(self):
+        if self.power and self.power_counter < 600:
+            self.power_counter += 1
+        elif self.power and self.power_counter >= 600:
+            self.power_counter = 0
+            self.power = False
+            self.eaten_ghosts = [False, False, False, False]
 # setting up the game including the screen size, clock, surface, and taking the level from the boards file
 pygame.init()
 screen = pygame.display.set_mode([SCREENWIDTH, SCREENHEIGHT])
@@ -282,6 +290,7 @@ frames = 60
 level = boards
 counter = 0
 turns_allowed = [False, False, False, False]  # [right, left, up, down]
+startup_counter = 0
 
 sprite_paths = {
     0: "sprites/grid/0.png",
@@ -332,7 +341,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
 
 player_sprites = []
-player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 5, 0, False)
+player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 5, 0, False, 0)
 def drawPlayer():
     for i in range(1, 4):
         sprite = pygame.image.load(f'sprites/john/{i}.png').convert_alpha()
@@ -356,6 +365,7 @@ while running:
     drawPlayer()
     turns_allowed = player.checkPosition() # Check if the player can turn in each direction
     player.checkCollisions()
+    player.powerUp()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
