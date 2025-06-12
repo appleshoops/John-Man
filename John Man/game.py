@@ -15,6 +15,10 @@ GREEN = (150, 255, 197)
 WALL_THICKNESS = 3
 WALL_OFFSET = 0  # Removed offset to make walls connect properly
 
+# set the title of the window
+title = 'John-Man'
+pygame.display.set_caption(title)
+
 class Object:  # create object class that works as a parent class for all the objects drawn onto the screen at launch
     def __init__(self, plane, row, col, xPos, yPos, sprite=None):  # add sprite as an optional parameter
         self.__surface = plane
@@ -153,14 +157,15 @@ class Pellet(Object):
     def __init__(self, plane, row, col, x_pos, yPos, sprite):
         super().__init__(plane, row, col, x_pos, yPos, sprite)
 class Player(Object): # player is a subclass of object from game.py
-    def __init__(self, plane, row, col, x_pos, y_pos, direction, direction_command, player_images, player_speed, score):
+    def __init__(self, plane, row, col, x_pos, y_pos, direction, direction_command, player_images, player_speed, points, power_up):
         super().__init__(plane, row, col, x_pos, y_pos)
         self.direction = direction
         self.direction_command = direction_command
         self.player_images = player_images
         self.player_speed = player_speed
         self.move_counter = 0
-        self.score = score
+        self.points = points
+        self.power_up = power_up
 
     @override
     def drawSprite(self):
@@ -253,7 +258,18 @@ class Player(Object): # player is a subclass of object from game.py
                         self._Object__row = new_row
                         self._Object__yPos = new_row * TILEHEIGHT
     def checkCollisions(self):
-        if 0 < self.readXPos() < TILEWIDTH:
+        current_tile = level[self.readRow()][self.readCol()]
+        if current_tile == 1: # Check if the player is on a dot
+            level[self.readRow()][self.readCol()] = 0
+            self.points += 1
+            title = f'John Man — Score: {self.points}'
+            pygame.display.set_caption(title)
+        if current_tile == 2: # Check if the player is on a dot
+            level[self.readRow()][self.readCol()] = 0
+            self.points += 10
+            self.power_up = True
+            title = f'John Man — Score: {self.points}'
+            pygame.display.set_caption(title)
 
 
 
@@ -266,10 +282,6 @@ frames = 60
 level = boards
 counter = 0
 turns_allowed = [False, False, False, False]  # [right, left, up, down]
-
-# set the title of the window
-title = 'John-Man'
-pygame.display.set_caption(title)
 
 sprite_paths = {
     0: "sprites/grid/0.png",
@@ -285,7 +297,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
             x_pos = j * TILEWIDTH
             y_pos = i * TILEHEIGHT
 
-            pygame.draw.rect(surface, (255, 0, 0), (x_pos, y_pos, TILEWIDTH, TILEHEIGHT), 1)
+            #pygame.draw.rect(surface, (255, 0, 0), (x_pos, y_pos, TILEWIDTH, TILEHEIGHT), 1)
 
             match level[i][j]:
                 case 0: # blank square
@@ -320,7 +332,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
 
 player_sprites = []
-player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 5, 0)
+player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 5, 0, False)
 def drawPlayer():
     for i in range(1, 4):
         sprite = pygame.image.load(f'sprites/john/{i}.png').convert_alpha()
@@ -343,6 +355,7 @@ while running:
     drawGrid()
     drawPlayer()
     turns_allowed = player.checkPosition() # Check if the player can turn in each direction
+    player.checkCollisions()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
