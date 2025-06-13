@@ -162,7 +162,7 @@ class Player(Object): # player is a subclass of object from game.py
         self.direction = direction
         self.direction_command = direction_command
         self.player_images = player_images
-        self.player_speed = 7 # Speed of the player, lower is faster
+        self.player_speed = 1 # Speed of the player, lower is faster
         self.move_counter = 0
         self.points = points
         self.power = power
@@ -174,7 +174,6 @@ class Player(Object): # player is a subclass of object from game.py
     def drawSprite(self):
         current_sprite = None
         # Get the current sprite based on direction
-        # Use a smaller divisor for smoother animation (was 4, now 2)
         sprite_index = (counter // 3) % len(self.player_images)
         
         if self.direction == 0:  # Right
@@ -283,13 +282,27 @@ class Player(Object): # player is a subclass of object from game.py
             self.power = False
             self.eaten_ghosts = [False, False, False, False]
 class Ghost(Object):
-    def __init__(self, plane, row, col, x_pos, y_pos, character, target, box, mortality):
+    def __init__(self, plane, row, col, x_pos, y_pos, character, target, box, mortality, ghost_images):
         super().__init__(plane, row, col, x_pos, y_pos)
         self.character = character
         self.target = target
         self.speed = 7  # Speed of the ghost, lower is faster
         self.in_box = box
         self.mortality = mortality  # if the ghost is dead
+        self.turns, self.in_box = self.checkCollisions()
+        self.rect = self.drawSprite()
+        self.ghost_images = ghost_images
+
+    @override
+    def drawSprite(self, player_power, eaten_ghosts):
+        # ADD THE THING FROM PLAYER TO CHANGE A VARIABLE CALLED CURRENT_SPRITE LIKE THE FOLLOWING:
+        if (not player_power and not self.mortality) or (eaten_ghosts[self.character] and not self.mortality):
+            self.readSurface().blit(self.ghost_images, (self.readXPos(), self.readYPos()))
+            # self.current_sprite = self.ghost_images[self.character]
+        elif player_power and not self.mortality:
+            self.readSurface().blit(self.ghost_images, (self.readXPos(), self.readYPos()))
+            # self.current_sprite = self.ghost_images[5]
+        return self.rect
 
 
 
