@@ -162,7 +162,7 @@ class Player(Object): # player is a subclass of object from game.py
         self.direction = direction
         self.direction_command = direction_command
         self.player_images = player_images
-        self.player_speed = 1 # Speed of the player, lower is faster
+        self.player_speed = 7 # Speed of the player, lower is faster
         self.move_counter = 0
         self.points = points
         self.power = power
