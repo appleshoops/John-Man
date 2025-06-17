@@ -302,7 +302,13 @@ class Ghost(Object):
         elif player_power and not self.mortality:
             self.readSurface().blit(self.ghost_images, (self.readXPos(), self.readYPos()))
             # self.current_sprite = self.ghost_images[5]
+        else:
+            self.readSurface().blit(self.ghost_images, (self.readXPos(), self.readYPos()))
+            # self.current_sprite = self.ghost_images[6]
+        self.rect = pygame.rect.Rect(self.readCentreXPos() - 18, self.readCentreYPos() - 18, 36, 36)  # Create a rect for the ghost sprite
         return self.rect
+
+    @override
 
 
 
