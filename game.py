@@ -27,22 +27,16 @@ class Object:  # create object class that works as a parent class for all the ob
         self.__xPos = col * TILEWIDTH
         self.__yPos = row * TILEHEIGHT
         self.__sprite = sprite
-
     def readSurface(self):
         return self.__surface
-
     def readRow(self):
         return self.__row
-
     def readCol(self):
         return self.__col
-
     def readXPos(self):
         return self.__xPos
-
     def readYPos(self):
         return self.__yPos
-
     def readCentrePos(self):
         center_x = self.__xPos + TILEWIDTH // 2
         center_y = self.__yPos + TILEHEIGHT // 2
@@ -175,7 +169,7 @@ class Player(Object): # player is a subclass of object from game.py
         current_sprite = None
         # Get the current sprite based on direction
         sprite_index = (counter // 3) % len(self.player_images)
-        
+
         if self.direction == 0:  # Right
             current_sprite = self.player_images[sprite_index]
         elif self.direction == 1:  # Left
@@ -184,7 +178,7 @@ class Player(Object): # player is a subclass of object from game.py
             current_sprite = pygame.transform.rotate(self.player_images[sprite_index], 90)
         elif self.direction == 3:  # Down
             current_sprite = pygame.transform.rotate(self.player_images[sprite_index], 270)
-        
+
         if current_sprite:
             # Center the sprite in the tile
             sprite_width = current_sprite.get_width()
@@ -309,6 +303,9 @@ class Ghost(Object):
         return self.rect
 
     @override
+    def checkCollisions(self):
+        return self.turns, self.in_box
+
 
 
 
