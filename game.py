@@ -283,31 +283,28 @@ class Ghost(Object):
         self.speed = 7  # Speed of the ghost, lower is faster
         self.in_box = box
         self.mortality = mortality  # if the ghost is dead
-        self.turns, self.in_box = self.checkCollisions()
-        self.rect = self.drawSprite()
+        #self.turns, self.in_box = self.checkCollisions()
         self.ghost_images = ghost_images
-
+        self.rect = self.drawSprite(player.power, player.eaten_ghosts)
     @override
     def drawSprite(self, player_power, eaten_ghosts):
         # ADD THE THING FROM PLAYER TO CHANGE A VARIABLE CALLED CURRENT_SPRITE LIKE THE FOLLOWING:
         if (not player_power and not self.mortality) or (eaten_ghosts[self.character] and not self.mortality):
-            self.readSurface().blit(self.ghost_images, (self.readXPos(), self.readYPos()))
+            self.readSurface().blit(self.ghost_images[self.character], (self.readXPos(), self.readYPos()))
             # self.current_sprite = self.ghost_images[self.character]
         elif player_power and not self.mortality:
-            self.readSurface().blit(self.ghost_images, (self.readXPos(), self.readYPos()))
+            self.readSurface().blit(self.ghost_images[5], (self.readXPos(), self.readYPos()))
             # self.current_sprite = self.ghost_images[5]
         else:
-            self.readSurface().blit(self.ghost_images, (self.readXPos(), self.readYPos()))
+            self.readSurface().blit(self.ghost_images[6], (self.readXPos(), self.readYPos()))
             # self.current_sprite = self.ghost_images[6]
         self.rect = pygame.rect.Rect(self.readCentreXPos() - 18, self.readCentreYPos() - 18, 36, 36)  # Create a rect for the ghost sprite
         return self.rect
 
-    @override
+    #@override
     def checkCollisions(self):
+        self.turns = [False, False, False, False]  # [right, left, up, down]
         return self.turns, self.in_box
-
-
-
 
 # setting up the game including the screen size, clock, surface, and taking the level from the boards file
 pygame.init()
@@ -379,6 +376,19 @@ def drawPlayer():
     player.drawSprite()
     player.checkPosition()
 
+def drawGhosts():
+    ghost_sprites = []
+    ghosts = []
+    for i in range(1, 7):
+        sprite = pygame.image.load(f'sprites/ghosts/{i}.png').convert_alpha()
+        sprite.set_colorkey((255, 255, 255))
+        ghost_sprites.append(sprite)
+    for i in range(1, 5):
+        ghost = Ghost(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, i - 1, player, True, False, ghost_sprites)
+        ghosts.append(ghost)
+        ghost.drawSprite(player.power, player.eaten_ghosts)
+
+
 running = True  # game loop
 while running:
     timer.tick(frames)
@@ -391,6 +401,7 @@ while running:
     screen.fill(BLACK)
     drawGrid()
     drawPlayer()
+    drawGhosts()
     turns_allowed = player.checkPosition() # Check if the player can turn in each direction
     player.checkCollisions()
     player.powerUp()
