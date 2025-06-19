@@ -288,17 +288,26 @@ class Ghost(Object):
         self.rect = self.drawSprite(player.power, player.eaten_ghosts)
     @override
     def drawSprite(self, player_power, eaten_ghosts):
-        # ADD THE THING FROM PLAYER TO CHANGE A VARIABLE CALLED CURRENT_SPRITE LIKE THE FOLLOWING:
+        current_sprite = None
+        
+        # Determine which sprite to use
         if (not player_power and not self.mortality) or (eaten_ghosts[self.character] and not self.mortality):
-            self.readSurface().blit(self.ghost_images[self.character], (self.readXPos(), self.readYPos()))
-            # self.current_sprite = self.ghost_images[self.character]
+            current_sprite = self.ghost_images[self.character]
         elif player_power and not self.mortality:
-            self.readSurface().blit(self.ghost_images[5], (self.readXPos(), self.readYPos()))
-            # self.current_sprite = self.ghost_images[5]
+            current_sprite = self.ghost_images[5]
         else:
-            self.readSurface().blit(self.ghost_images[6], (self.readXPos(), self.readYPos()))
-            # self.current_sprite = self.ghost_images[6]
-        self.rect = pygame.rect.Rect(self.readCentreXPos() - 18, self.readCentreYPos() - 18, 36, 36)  # Create a rect for the ghost sprite
+            current_sprite = self.ghost_images[6]
+        
+        # Center the sprite in the tile (like the Player class does)
+        if current_sprite:
+            sprite_width = current_sprite.get_width()
+            sprite_height = current_sprite.get_height()
+            center_x = self.readXPos() + (TILEWIDTH - sprite_width) // 2
+            center_y = self.readYPos() + (TILEHEIGHT - sprite_height) // 2
+            self.readSurface().blit(current_sprite, (center_x, center_y))
+        
+        # Create collision rect centered on the ghost
+        self.rect = pygame.rect.Rect(self.readCentreXPos() - 18, self.readCentreYPos() - 18, 36, 36)
         return self.rect
 
     #@override
@@ -379,12 +388,25 @@ def drawPlayer():
 def drawGhosts():
     ghost_sprites = []
     ghosts = []
+    
+    # Load ghost sprites
     for i in range(1, 7):
         sprite = pygame.image.load(f'sprites/ghosts/{i}.png').convert_alpha()
         sprite.set_colorkey((255, 255, 255))
         ghost_sprites.append(sprite)
-    for i in range(1, 5):
-        ghost = Ghost(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, i - 1, player, True, False, ghost_sprites)
+    
+    # Define corner positions for each ghost
+    ghost_positions = [
+        (3, 3),      # Ghost 0: Top-left corner
+        (3, 28),     # Ghost 1: Top-right corner
+        (29, 3),     # Ghost 2: Bottom-left corner
+        (29, 28)     # Ghost 3: Bottom-right corner
+    ]
+    
+    # Create ghosts at different corner positions
+    for i in range(4):
+        row, col = ghost_positions[i]
+        ghost = Ghost(surface, row, col, col * TILEWIDTH, row * TILEHEIGHT, i, player, False, False, ghost_sprites)
         ghosts.append(ghost)
         ghost.drawSprite(player.power, player.eaten_ghosts)
 
