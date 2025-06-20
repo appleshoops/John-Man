@@ -60,6 +60,34 @@ class Object:  # create object class that works as a parent class for all the ob
             center_y = self.__yPos + (TILEHEIGHT - sprite_height) // 2
             # Draw the sprite at the center of the tile
             self.__surface.blit(self.__sprite, (center_x, center_y))
+
+    def checkTurns(self):
+        turns = [False, False, False, False]  # [right, left, up, down]
+
+        # Get current row and column positions
+        current_row = self.readRow()
+        current_col = self.readCol()
+
+        next_col = current_col + 1
+        if next_col < NUMBERCOLS and level[current_row][next_col] < 3:
+            turns[0] = True
+
+        # Check left movement
+        next_col = current_col - 1
+        if next_col >= 0 and level[current_row][next_col] < 3:
+            turns[1] = True
+
+        # Check up movement
+        next_row = current_row - 1
+        if next_row >= 0 and level[next_row][current_col] < 3:
+            turns[2] = True
+
+        # Check down movement
+        next_row = current_row + 1
+        if next_row < NUMBERROWS and level[next_row][current_col] < 3:
+            turns[3] = True
+
+        return turns
 class Wall(Object):     # create subclass specifically for walls 
     def __init__(self, plane, row, col, x_pos, yPos, wallType):
         super().__init__(plane, row, col, x_pos, yPos)
@@ -189,33 +217,6 @@ class Player(Object): # player is a subclass of object from game.py
         
         # Increment the animation counter continuously
         self.animation_counter += 1
-    def checkPosition(self):
-        turns = [False, False, False, False]  # [right, left, up, down]
-        
-        # Get current row and column positions
-        current_row = self.readRow()
-        current_col = self.readCol()
-
-        next_col = current_col + 1
-        if next_col < NUMBERCOLS and level[current_row][next_col] < 3:
-            turns[0] = True
-        
-        # Check left movement  
-        next_col = current_col - 1
-        if next_col >= 0 and level[current_row][next_col] < 3:
-            turns[1] = True
-        
-        # Check up movement
-        next_row = current_row - 1
-        if next_row >= 0 and level[next_row][current_col] < 3:
-            turns[2] = True
-        
-        # Check down movement
-        next_row = current_row + 1
-        if next_row < NUMBERROWS and level[next_row][current_col] < 3:
-            turns[3] = True
-        
-        return turns
     def movePlayer(self):
         for i in range(4):
             if self.direction_command == i and turns_allowed[i]: # check if the player can turn in the direction they want to go
@@ -314,11 +315,12 @@ class Ghost(Object):
         # Create collision rect centered on the ghost
         self.rect = pygame.rect.Rect(self.readCentreXPos() - 18, self.readCentreYPos() - 18, 36, 36)
         return self.rect
-
-    #@override
-    def checkCollisions(self):
-        self.turns = [False, False, False, False]  # [right, left, up, down]
-        return self.turns, self.in_box
+    def checkDeadBox(self):
+        current_tile = level[self.readRow()][self.readCol()]
+        if current_tile == 9:
+            self.in_box = True
+        else:
+            self.in_box = False
 
 # setting up the game including the screen size, clock, surface, and taking the level from the boards file
 pygame.init()
@@ -388,7 +390,7 @@ def drawPlayer():
         sprite.set_colorkey((255, 255, 255))  # Make white transparent
         player_sprites.append(sprite)
     player.drawSprite()
-    player.checkPosition()
+    player.checkTurns()
 
 def drawGhosts():
     ghost_sprites = []
@@ -430,7 +432,7 @@ while running:
     drawGrid()
     drawPlayer()
     drawGhosts()
-    turns_allowed = player.checkPosition() # Check if the player can turn in each direction
+    turns_allowed = player.checkTurns() # Check if the player can turn in each direction
     player.checkCollisions()
     player.powerUp()
     for event in pygame.event.get():
