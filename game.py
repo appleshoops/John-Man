@@ -163,12 +163,12 @@ class Player(Object): # player is a subclass of object from game.py
         self.power_counter = power_counter
         self.eaten_ghosts = [False, False, False, False]
         self.lives = 3
+        self.animation_counter = 0
 
     @override
     def drawSprite(self):
         current_sprite = None
-        # Get the current sprite based on direction
-        sprite_index = (counter // 3) % len(self.player_images)
+        sprite_index = (self.animation_counter // 3) % len(self.player_images)
 
         if self.direction == 0:  # Right
             current_sprite = self.player_images[sprite_index]
@@ -186,6 +186,9 @@ class Player(Object): # player is a subclass of object from game.py
             center_x = self.readXPos() + (TILEWIDTH - sprite_width) // 2
             center_y = self.readYPos() + (TILEHEIGHT - sprite_height) // 2
             self.readSurface().blit(current_sprite, (center_x, center_y))
+        
+        # Increment the animation counter continuously
+        self.animation_counter += 1
     def checkPosition(self):
         turns = [False, False, False, False]  # [right, left, up, down]
         
@@ -291,12 +294,14 @@ class Ghost(Object):
         current_sprite = None
         
         # Determine which sprite to use
-        if (not player_power and not self.mortality) or (eaten_ghosts[self.character] and not self.mortality):
-            current_sprite = self.ghost_images[self.character]
-        elif player_power and not self.mortality:
-            current_sprite = self.ghost_images[5]
-        else:
+        if self.mortality:  # Ghost is dead (eyes only)
             current_sprite = self.ghost_images[6]
+        elif player_power and not eaten_ghosts[self.character]:  # Power pellet active, ghost vulnerable
+            current_sprite = self.ghost_images[5]
+        elif eaten_ghosts[self.character]:  # Ghost has been eaten but not dead yet
+            current_sprite = self.ghost_images[6]
+        else:  # Normal ghost state
+            current_sprite = self.ghost_images[self.character]
         
         # Center the sprite in the tile (like the Player class does)
         if current_sprite:
@@ -392,7 +397,8 @@ def drawGhosts():
     # Load ghost sprites
     for i in range(1, 7):
         sprite = pygame.image.load(f'sprites/ghosts/{i}.png').convert_alpha()
-        sprite.set_colorkey((255, 255, 255))
+        # Use near-white instead of pure white
+        sprite.set_colorkey((254, 254, 254))  # Very close to white but not pure white
         ghost_sprites.append(sprite)
     
     # Define corner positions for each ghost
