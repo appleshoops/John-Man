@@ -1,5 +1,6 @@
 # imports
 import pygame
+import math
 from board import boards
 from typing import override
 
@@ -179,12 +180,11 @@ class Pellet(Object):
     def __init__(self, plane, row, col, x_pos, yPos, sprite):
         super().__init__(plane, row, col, x_pos, yPos, sprite)
 class Player(Object): # player is a subclass of object from game.py
-    def __init__(self, plane, row, col, x_pos, y_pos, direction, direction_command, player_images, points, power, power_counter):
+    def __init__(self, plane, row, col, x_pos, y_pos, direction, direction_command, player_images, points, power, power_counter, player_speed):
         super().__init__(plane, row, col, x_pos, y_pos)
         self.direction = direction
         self.direction_command = direction_command
         self.player_images = player_images
-        self.player_speed = 7 # Speed of the player, lower is faster
         self.move_counter = 0
         self.points = points
         self.power = power
@@ -192,6 +192,7 @@ class Player(Object): # player is a subclass of object from game.py
         self.eaten_ghosts = [False, False, False, False]
         self.lives = 3
         self.animation_counter = 0
+        self.player_speed = player_speed
 
     @override
     def drawSprite(self):
@@ -287,23 +288,23 @@ class Ghost(Object):
         self.speed = 7  # Speed of the ghost, lower is faster
         self.in_box = box
         self.mortality = mortality  # if the ghost is dead
-        #self.turns, self.in_box = self.checkCollisions()
+        self.turns, self.in_box = self.checkCollisions()
         self.ghost_images = ghost_images
         self.rect = self.drawSprite(player.power, player.eaten_ghosts)
     @override
     def drawSprite(self, player_power, eaten_ghosts):
         current_sprite = None
-        
+
         # Determine which sprite to use
         if self.mortality:  # Ghost is dead (eyes only)
             current_sprite = self.ghost_images[6]
         elif player_power and not eaten_ghosts[self.character]:  # Power pellet active, ghost vulnerable
             current_sprite = self.ghost_images[5]
         elif eaten_ghosts[self.character]:  # Ghost has been eaten but not dead yet
-            current_sprite = self.ghost_images[6]
+            current_sprite = self.ghost_images[5]
         else:  # Normal ghost state
             current_sprite = self.ghost_images[self.character]
-        
+
         # Center the sprite in the tile (like the Player class does)
         if current_sprite:
             sprite_width = current_sprite.get_width()
@@ -311,16 +312,33 @@ class Ghost(Object):
             center_x = self.readXPos() + (TILEWIDTH - sprite_width) // 2
             center_y = self.readYPos() + (TILEHEIGHT - sprite_height) // 2
             self.readSurface().blit(current_sprite, (center_x, center_y))
-        
+
         # Create collision rect centered on the ghost
         self.rect = pygame.rect.Rect(self.readCentreXPos() - 18, self.readCentreYPos() - 18, 36, 36)
         return self.rect
     def checkDeadBox(self):
         current_tile = level[self.readRow()][self.readCol()]
-        if current_tile == 9:
+        if 13 <= self.readXPos() <= 18 and 14 <= self.readYPos() <= 17:
             self.in_box = True
         else:
             self.in_box = False
+        return self.in_box
+    def checkCollisions(self):
+        return self.checkTurns(), self.checkDeadBox()
+    def findPath(self, player_row, player_col):
+        manhattanDistance = ((abs(player_row - self.readRow())) +
+                             (abs(player_col - self.readCol())))
+        available_moves = self.checkTurns()
+        temp_distance = manhattanDistance
+        for i in range(len(available_moves)):
+            if available_moves[i]:
+                if i == 0:
+                    temp_distance = (abs(player_row - self.readRow()) +
+                                     abs(player_col - (self.readCol() + 1)))
+                if i == 1:
+                    temp_distance = (abs(player_row - self.read))
+
+
 
 # setting up the game including the screen size, clock, surface, and taking the level from the boards file
 pygame.init()
@@ -332,6 +350,7 @@ level = boards
 counter = 0
 turns_allowed = [False, False, False, False]  # [right, left, up, down]
 startup_counter = 0
+speed = 7 # Speed of the player, lower is faster
 
 sprite_paths = {
     0: "sprites/grid/0.png",
@@ -382,7 +401,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
 
 player_sprites = []
-player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 0, False, 0)
+player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 0, False, 0, speed)
 def drawPlayer():
     for i in range(1, 4):
         sprite = pygame.image.load(f'sprites/john/{i}.png').convert_alpha()
@@ -395,7 +414,7 @@ def drawPlayer():
 def drawGhosts():
     ghost_sprites = []
     ghosts = []
-    
+
     # Load ghost sprites
     for i in range(1, 7):
         sprite = pygame.image.load(f'sprites/ghosts/{i}.png').convert_alpha()
@@ -405,10 +424,10 @@ def drawGhosts():
     
     # Define corner positions for each ghost
     ghost_positions = [
-        (3, 3),      # Ghost 0: Top-left corner
-        (3, 28),     # Ghost 1: Top-right corner
-        (29, 3),     # Ghost 2: Bottom-left corner
-        (29, 28)     # Ghost 3: Bottom-right corner
+        (2, 2),      # Ghost 0: Top-left corner
+        (2, 27),     # Ghost 1: Top-right corner
+        (30, 2),     # Ghost 2: Bottom-left corner
+        (30, 27)     # Ghost 3: Bottom-right corner
     ]
     
     # Create ghosts at different corner positions

@@ -1,4 +1,4 @@
-# 0 = empty black rectangle, 1 = dot, 2 = big dot, 3 = vertical line,
+# 0 = empty black rectangles, 1 = dot, 2 = big dot, 3 = vertical line,
 # 4 = horizontal line, 5 = top right, 6 = top left, 7 = bot left, 8 = bot right
 # 9 = gate
 boards = [
@@ -35,3 +35,4 @@ boards = [
 [3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3],
 [7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 8]
          ]
+# Gate box: 13-18 on x axis, 14-17 on y axis
