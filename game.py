@@ -1,6 +1,5 @@
 # imports
 import pygame
-import math
 from board import boards
 from typing import override
 
@@ -28,6 +27,7 @@ class Object:  # create object class that works as a parent class for all the ob
         self.__xPos = col * TILEWIDTH
         self.__yPos = row * TILEHEIGHT
         self.__sprite = sprite
+    # all the read functions allow the properties of the object to be called
     def readSurface(self):
         return self.__surface
     def readRow(self):
@@ -176,10 +176,10 @@ class Wall(Object):     # create subclass specifically for walls
                     (self.readXPos() + WALL_OFFSET, centerY),
                     WALL_THICKNESS
                 )
-class Pellet(Object):
+class Pellet(Object): # special class for the pellets that the player collects
     def __init__(self, plane, row, col, x_pos, yPos, sprite):
         super().__init__(plane, row, col, x_pos, yPos, sprite)
-class Player(Object): # player is a subclass of object from game.py
+class Player(Object): # player is a subclass of object
     def __init__(self, plane, row, col, x_pos, y_pos, direction, direction_command, player_images, points, power, power_counter, player_speed):
         super().__init__(plane, row, col, x_pos, y_pos)
         self.direction = direction
@@ -195,9 +195,9 @@ class Player(Object): # player is a subclass of object from game.py
         self.player_speed = player_speed
 
     @override
-    def drawSprite(self):
+    def drawSprite(self): # draws the player sprite onto the screen
         current_sprite = None
-        sprite_index = (self.animation_counter // 3) % len(self.player_images)
+        sprite_index = (self.animation_counter // 3) % len(self.player_images) # cycles through the player animation
 
         if self.direction == 0:  # Right
             current_sprite = self.player_images[sprite_index]
@@ -225,7 +225,7 @@ class Player(Object): # player is a subclass of object from game.py
 
         self.move_counter += 1
 
-        if self.move_counter >= self.player_speed:
+        if self.move_counter >= self.player_speed: # counter allows me to change speed of the player
             self.move_counter = 0
 
             if turns_allowed[self.direction]:
@@ -261,27 +261,27 @@ class Player(Object): # player is a subclass of object from game.py
     def checkCollisions(self):
         current_tile = level[self.readRow()][self.readCol()]
         if current_tile == 1: # Check if the player is on a dot
-            level[self.readRow()][self.readCol()] = 0
-            self.points += 1
+            level[self.readRow()][self.readCol()] = 0 # remove dot
+            self.points += 1 # increase score
             title = f'John Man — Score: {self.points} — Lives: {self.lives}'
             pygame.display.set_caption(title)
-        if current_tile == 2: # Check if the player is on a dot
+        if current_tile == 2: # Check if the player is on a big dot
             level[self.readRow()][self.readCol()] = 0
-            self.points += 10
-            self.power = True
+            self.points += 10 # big dots get more points
+            self.power = True # activate power pellet
             self.power_counter = 0
             title = f'John Man — Score: {self.points} — Lives: {self.lives}'
             pygame.display.set_caption(title)
         return self.points, self.power, self.power_counter, self.eaten_ghosts
-    def powerUp(self):
+    def powerUp(self): # manages the player's power state
         if self.power and self.power_counter < 600:
             self.power_counter += 1
         elif self.power and self.power_counter >= 600:
             self.power_counter = 0
             self.power = False
             self.eaten_ghosts = [False, False, False, False]
-class Ghost(Object):
-    def __init__(self, plane, row, col, x_pos, y_pos, character, target, box, mortality, ghost_images):
+class Ghost(Object): # ghost is a subclass of object
+    def __init__(self, plane, row, col, x_pos, y_pos, character, target, box, mortality, ghost_images, direction):
         super().__init__(plane, row, col, x_pos, y_pos)
         self.character = character
         self.target = target
@@ -291,8 +291,9 @@ class Ghost(Object):
         self.turns, self.in_box = self.checkCollisions()
         self.ghost_images = ghost_images
         self.rect = self.drawSprite(player.power, player.eaten_ghosts)
+        self.direction = direction
     @override
-    def drawSprite(self, player_power, eaten_ghosts):
+    def drawSprite(self, player_power, eaten_ghosts): # passes in variables from the player
         current_sprite = None
 
         # Determine which sprite to use
@@ -316,27 +317,47 @@ class Ghost(Object):
         # Create collision rect centered on the ghost
         self.rect = pygame.rect.Rect(self.readCentreXPos() - 18, self.readCentreYPos() - 18, 36, 36)
         return self.rect
-    def checkDeadBox(self):
+    def checkDeadBox(self): # checks if the ghosts are in the dead box
         current_tile = level[self.readRow()][self.readCol()]
-        if 13 <= self.readXPos() <= 18 and 14 <= self.readYPos() <= 17:
+        if 13 <= self.readXPos() <= 18 and 14 <= self.readYPos() <= 17: # coordinate range for the dead box
             self.in_box = True
         else:
             self.in_box = False
         return self.in_box
     def checkCollisions(self):
         return self.checkTurns(), self.checkDeadBox()
-    def findPath(self, player_row, player_col):
-        manhattanDistance = ((abs(player_row - self.readRow())) +
-                             (abs(player_col - self.readCol())))
+    def findPath(self, player_row, player_col): # finds the shortest path to the player
+        #manhattanDistance = ((abs(player_row - self.readRow())) +
+        #                     (abs(player_col - self.readCol())))
         available_moves = self.checkTurns()
-        temp_distance = manhattanDistance
+        short_distance = 9999
+        temp_distance = 0
         for i in range(len(available_moves)):
             if available_moves[i]:
+                # determines the manhattan distance to the player for each possible direction
                 if i == 0:
                     temp_distance = (abs(player_row - self.readRow()) +
                                      abs(player_col - (self.readCol() + 1)))
                 if i == 1:
-                    temp_distance = (abs(player_row - self.read))
+                    temp_distance = (abs(player_row - self.readRow()) +
+                                     abs(player_col - (self.readCol() - 1)))
+                if i == 2:
+                    temp_distance = (abs(player_row - (self.readRow() - 1)) +
+                                     abs(player_col - self.readCol()))
+                if i == 3:
+                    temp_distance = (abs(player_row - (self.readRow() + 1)) +
+                                     abs(player_col - self.readCol()))
+                # if the distance is shorter than the previous shortest distance, set it as the new shortest distance
+                if temp_distance < short_distance:
+                    short_distance = temp_distance
+                    self.direction = i
+                else:
+                    pass
+        return self.direction
+    def moveGhost(self):
+        pass
+        # use code from player movement
+
 
 
 
@@ -433,7 +454,7 @@ def drawGhosts():
     # Create ghosts at different corner positions
     for i in range(4):
         row, col = ghost_positions[i]
-        ghost = Ghost(surface, row, col, col * TILEWIDTH, row * TILEHEIGHT, i, player, False, False, ghost_sprites)
+        ghost = Ghost(surface, row, col, col * TILEWIDTH, row * TILEHEIGHT, i, player, False, False, ghost_sprites, 0)
         ghosts.append(ghost)
         ghost.drawSprite(player.power, player.eaten_ghosts)
 
