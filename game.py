@@ -1,5 +1,6 @@
 # imports
 import pygame
+import random
 from board import boards
 from typing import override
 
@@ -14,6 +15,21 @@ BLACK = (0, 0, 0)
 GREEN = (150, 255, 197)
 WALL_THICKNESS = 3
 WALL_OFFSET = 0  # Removed offset to make walls connect properly
+
+# setting up the game including the screen size, clock, surface, and taking the level from the boards file
+pygame.init()
+screen = pygame.display.set_mode([SCREENWIDTH, SCREENHEIGHT])
+timer = pygame.time.Clock()
+surface = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
+frames = 60
+level = []
+for row in boards:
+    level.append(row.copy())  # Create a copy of each row to avoid modifying the original board
+counter = 0
+turns_allowed = [False, False, False, False]  # [right, left, up, down]
+startup_counter = 0
+player_speed = 7 # Speed of the player, lower is faster
+ghost_speed = 8
 
 # set the title of the window
 title = 'John-Man'
@@ -193,7 +209,55 @@ class Player(Object): # player is a subclass of object
         self.lives = 3
         self.animation_counter = 0
         self.player_speed = player_speed
+    def checkGhostCollisions(self):
+        for ghost in ghosts:
+            # Check if player and ghost positions overlap
+            player_rect = pygame.rect.Rect(self.readCentreXPos() - 18, self.readCentreYPos() - 18, 36, 36)
 
+            if player_rect.colliderect(ghost.rect):
+                if self.power and not self.eaten_ghosts[ghost.character]:
+                    # Player eats ghost
+                    self.eaten_ghosts[ghost.character] = True
+                    self.points += 100  # Points for eating a ghost
+
+                    # Make ghost return to box
+                    ghost.mortality = True
+
+                    # Reset ghost position to their corners
+                    if ghost.character == 0:
+                        ghost._Object__row = 2
+                        ghost._Object__col = 2
+                    elif ghost.character == 1:
+                        ghost._Object__row = 2
+                        ghost._Object__col = 27
+                    elif ghost.character == 2:
+                        ghost._Object__row = 30
+                        ghost._Object__col = 2
+                    else:
+                        ghost._Object__row = 30
+                        ghost._Object__col = 27
+
+                    # Update pixel positions
+                    ghost._Object__xPos = ghost._Object__col * TILEWIDTH
+                    ghost._Object__yPos = ghost._Object__row * TILEHEIGHT
+
+                elif not self.power and not ghost.mortality:
+                    # Ghost eats player
+                    self.lives -= 1
+                    title = f'John Man — Score: {player.points} — Lives: {player.lives} — Speed: {player.player_speed}'
+                    pygame.display.set_caption(title)
+                    if self.lives > 0:
+                        # Reset player position
+                        self._Object__row = 18
+                        self._Object__col = 15
+                        self._Object__xPos = 15 * TILEWIDTH
+                        self._Object__yPos = 18 * TILEHEIGHT
+                        self.direction = 0
+                        self.direction_command = 0
+                    else:
+                        # Game over
+                        global running
+                        running = False
     @override
     def readPoints(self):
         return self.points
@@ -281,6 +345,13 @@ class Player(Object): # player is a subclass of object
         elif self.power and self.power_counter >= 600:
             self.power_counter = 0
             self.power = False
+
+            for i, eaten in enumerate(self.eaten_ghosts): # reset eaten ghosts when power up ends
+                if eaten:
+                    for ghost in ghosts:
+                        if ghost.character == i:
+                            ghost.mortality = False
+
             self.eaten_ghosts = [False, False, False, False]
 class Ghost(Object): # ghost is a subclass of object
     def __init__(self, plane, row, col, x_pos, y_pos, character, target, box, mortality, ghost_images, direction, speed):
@@ -300,12 +371,11 @@ class Ghost(Object): # ghost is a subclass of object
     def moveGhost(self):
         self.turns_allowed = self.checkTurns()
         self.move_counter += 1
-        
         # Debug print to see if the function is being called
         # print(f"Ghost {self.character}: move_counter={self.move_counter}, direction={self.direction}, turns_allowed={self.turns_allowed}")
-        
         if self.move_counter >= self.speed:
             self.move_counter = 0
+
             if self.turns_allowed[self.direction]:
                 # print(f"Ghost {self.character} moving in direction {self.direction}")
                 if self.direction == 0:  # Moving right
@@ -335,13 +405,7 @@ class Ghost(Object): # ghost is a subclass of object
                         self._Object__row = new_row
                         self._Object__yPos = new_row * TILEHEIGHT
             else:
-                # If current direction is blocked, find a new valid direction
-                print(f"Ghost {self.character} blocked, finding new direction")
-                for i in range(4):
-                    if self.turns_allowed[i]:
-                        self.direction = i
-                        print(f"Ghost {self.character} changed direction to {i}")
-                        break
+                self.findRandomDirection() # if the ghost can't turn in the direction it wants to go, find a random direction
     def checkDeadBox(self): # checks if the ghosts are in the dead box
         current_tile = level[self.readRow()][self.readCol()]
         if 13 <= self.readXPos() <= 18 and 14 <= self.readYPos() <= 17: # coordinate range for the dead box
@@ -349,38 +413,193 @@ class Ghost(Object): # ghost is a subclass of object
         else:
             self.in_box = False
         return self.in_box
-    def findPath(self, player_row, player_col): # finds the shortest path to the player
-        #manhattanDistance = ((abs(player_row - self.readRow())) +
-        #                     (abs(player_col - self.readCol())))
-        available_moves = self.checkTurns()
-        short_distance = 9999
-        temp_distance = 0
-        for i in range(len(available_moves)):
-            if available_moves[i]:
-                # determines the manhattan distance to the player for each possible direction
-                if i == 0:
-                    temp_distance = (abs(player_row - self.readRow()) +
-                                     abs(player_col - (self.readCol() + 1)))
-                if i == 1:
-                    temp_distance = (abs(player_row - self.readRow()) +
-                                     abs(player_col - (self.readCol() - 1)))
-                if i == 2:
-                    temp_distance = (abs(player_row - (self.readRow() - 1)) +
-                                     abs(player_col - self.readCol()))
-                if i == 3:
-                    temp_distance = (abs(player_row - (self.readRow() + 1)) +
-                                     abs(player_col - self.readCol()))
-                # if the distance is shorter than the previous shortest distance, set it as the new shortest distance
-                if temp_distance < short_distance:
-                    short_distance = temp_distance
-                    self.direction = i
+    def findPath(self, player_row, player_col):
+        self.turns_allowed = self.checkTurns()
+
+        # Give each ghost a distinct personality
+        if self.character == 0:  # Red ghost (Blinky) - Direct chaser
+            # Almost always pursues player directly
+            randomness_factor = 0.05
+            target_row = player_row
+            target_col = player_col
+        elif self.character == 1:  # Pink ghost (Pinky) - Ambusher
+            # Tries to get ahead of the player
+            randomness_factor = 0.15
+            # Target 4 tiles ahead of player based on player's direction
+            if player.direction == 0:  # Right
+                target_row = player_row
+                target_col = (player_col + 4) % NUMBERCOLS
+            elif player.direction == 1:  # Left
+                target_row = player_row
+                target_col = (player_col - 4) % NUMBERCOLS
+            elif player.direction == 2:  # Up
+                target_row = max(0, player_row - 4)
+                target_col = player_col
+            elif player.direction == 3:  # Down
+                target_row = min(NUMBERROWS - 1, player_row + 4)
+                target_col = player_col
+        elif self.character == 2:  # Blue ghost (Inky) - Complex targeting
+            # Targets position based on both player and red ghost
+            randomness_factor = 0.25
+            if len(ghosts) > 0 and self.character != 0:  # Ensure red ghost exists and this isn't the red ghost
+                red_ghost = None
+                for ghost in ghosts:
+                    if ghost.character == 0:
+                        red_ghost = ghost
+                        break
+
+                if red_ghost:
+                    # Target is vector from red ghost to player, doubled
+                    target_row = player_row + (player_row - red_ghost.readRow())
+                    target_row = max(0, min(target_row, NUMBERROWS - 1))
+                    target_col = player_col + (player_col - red_ghost.readCol())
+                    target_col = max(0, min(target_col, NUMBERCOLS - 1))
                 else:
-                    pass
+                    # Fallback if red ghost not found
+                    target_row = player_row
+                    target_col = player_col
+            else:
+                target_row = player_row
+                target_col = player_col
+        else:  # Orange ghost (Clyde) - Shy
+            # Pursues player directly when far, but wanders when close
+            randomness_factor = 0.35
+            distance_to_player = abs(player_row - self.readRow()) + abs(player_col - self.readCol())
+            if distance_to_player < 8:  # When close to player, retreat to corner
+                target_row = 30
+                target_col = 2
+            else:  # When far, chase directly
+                target_row = player_row
+                target_col = player_col
+
+        # When player has power, all ghosts run away (but with different patterns)
+        if player.power and not player.eaten_ghosts[self.character]:
+            # Different ghosts have different "scatter" corners when fleeing
+            if self.character == 0:
+                target_row, target_col = 2, 2  # Top-left
+            elif self.character == 1:
+                target_row, target_col = 2, 27  # Top-right
+            elif self.character == 2:
+                target_row, target_col = 30, 2  # Bottom-left
+            else:
+                target_row, target_col = 30, 27  # Bottom-right
+
+            # Increase randomness when fleeing to make movement less predictable
+            randomness_factor += 0.2
+
+        # Random movement chance
+        if random.random() < randomness_factor:
+            self.findRandomDirection()
+            return self.direction
+
+        # Find best direction towards target
+        best_direction = -1
+
+        if player.power and not player.eaten_ghosts[self.character]:
+            # Run away - maximize distance to target
+            max_distance = -float('inf')
+
+            for i in range(4):
+                if self.turns_allowed[i]:
+                    if i == 0:  # Right
+                        temp_row = self.readRow()
+                        temp_col = (self.readCol() + 1) % NUMBERCOLS
+                    elif i == 1:  # Left
+                        temp_row = self.readRow()
+                        temp_col = (self.readCol() - 1) % NUMBERCOLS
+                    elif i == 2:  # Up
+                        temp_row = max(0, self.readRow() - 1)
+                        temp_col = self.readCol()
+                    elif i == 3:  # Down
+                        temp_row = min(NUMBERROWS - 1, self.readRow() + 1)
+                        temp_col = self.readCol()
+
+                    # Calculate Manhattan distance to the target
+                    temp_distance = abs(target_row - temp_row) + abs(target_col - temp_col)
+
+                    # Choose direction that maximizes distance
+                    if temp_distance > max_distance:
+                        max_distance = temp_distance
+                        best_direction = i
+        else:
+            # Chase - minimize distance to target
+            short_distance = float('inf')
+
+            for i in range(4):
+                if self.turns_allowed[i]:
+                    if i == 0:  # Right
+                        temp_row = self.readRow()
+                        temp_col = (self.readCol() + 1) % NUMBERCOLS
+                    elif i == 1:  # Left
+                        temp_row = self.readRow()
+                        temp_col = (self.readCol() - 1) % NUMBERCOLS
+                    elif i == 2:  # Up
+                        temp_row = max(0, self.readRow() - 1)
+                        temp_col = self.readCol()
+                    elif i == 3:  # Down
+                        temp_row = min(NUMBERROWS - 1, self.readRow() + 1)
+                        temp_col = self.readCol()
+
+                    # Calculate Manhattan distance to target
+                    temp_distance = abs(target_row - temp_row) + abs(target_col - temp_col)
+
+                    # Choose direction that minimizes distance
+                    if temp_distance < short_distance:
+                        short_distance = temp_distance
+                        best_direction = i
+
+        # Update direction if a valid one was found
+        if best_direction != -1:
+            self.direction = best_direction
+        else:
+            self.findRandomDirection()
+
         return self.direction
-
-
         # use code from player movement
+    def findRandomDirection(self):
+        self.turns_allowed = self.checkTurns()
 
+        # Get all valid directions
+        valid_dirs = [i for i, valid in enumerate(self.turns_allowed) if valid]
+
+        if not valid_dirs:
+            # Ghost is stuck (shouldn't happen)
+            # Try to reset position to a known safe location
+            if self.character == 0:
+                self._Object__row = 2
+                self._Object__col = 2
+                self._Object__xPos = 2 * TILEWIDTH
+                self._Object__yPos = 2 * TILEHEIGHT
+            elif self.character == 1:
+                self._Object__row = 2
+                self._Object__col = 27
+                self._Object__xPos = 27 * TILEWIDTH
+                self._Object__yPos = 2 * TILEHEIGHT
+            elif self.character == 2:
+                self._Object__row = 30
+                self._Object__col = 2
+                self._Object__xPos = 2 * TILEWIDTH
+                self._Object__yPos = 30 * TILEHEIGHT
+            elif self.character == 3:
+                self._Object__row = 30
+                self._Object__col = 27
+                self._Object__xPos = 27 * TILEWIDTH
+                self._Object__yPos = 30 * TILEHEIGHT
+            return
+
+        # Different ghosts have different movement patterns
+        # Character 0: Prefers continuing straight
+        # Character 1: Slightly prefers continuing straight
+        # Character 2: Completely random
+        # Character 3: Prefers turning
+        continue_straight_chance = 0.7 - (self.character * 0.2)
+
+        if self.direction in valid_dirs and random.random() < continue_straight_chance:
+            # Continue in same direction
+            return
+
+        # Otherwise choose a random valid direction
+        self.direction = random.choice(valid_dirs)
     @override
     def drawSprite(self): # Override the parent method with no additional parameters
         # Get player power and eaten ghosts from the global player object
@@ -391,11 +610,9 @@ class Ghost(Object): # ghost is a subclass of object
 
         # Determine which sprite to use
         if self.mortality:  # Ghost is dead (eyes only)
-            current_sprite = self.ghost_images[6]
-        elif player_power and not eaten_ghosts[self.character]:  # Power pellet active, ghost vulnerable
             current_sprite = self.ghost_images[5]
-        elif eaten_ghosts[self.character]:  # Ghost has been eaten but not dead yet
-            current_sprite = self.ghost_images[5]
+        elif player_power and not eaten_ghosts[self.character]:
+            current_sprite = self.ghost_images[4]  # Scared ghost sprite
         else:  # Normal ghost state
             current_sprite = self.ghost_images[self.character]
 
@@ -410,20 +627,6 @@ class Ghost(Object): # ghost is a subclass of object
         # Create collision rect centered on the ghost
         self.rect = pygame.rect.Rect(self.readCentreXPos() - 18, self.readCentreYPos() - 18, 36, 36)
         return self.rect
-
-
-# setting up the game including the screen size, clock, surface, and taking the level from the boards file
-pygame.init()
-screen = pygame.display.set_mode([SCREENWIDTH, SCREENHEIGHT])
-timer = pygame.time.Clock()
-surface = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
-frames = 60
-level = boards
-counter = 0
-turns_allowed = [False, False, False, False]  # [right, left, up, down]
-startup_counter = 0
-player_speed = 7 # Speed of the player, lower is faster
-ghost_speed = 8
 
 sprite_paths = {
     0: "sprites/grid/0.png",
@@ -516,13 +719,85 @@ def drawGhosts():
     for ghost in ghosts:
         ghost.drawSprite()  # Call without parameters now
 
-def speedSet():
-    score = player.readPoints()
-    if player.readPoints() % 282 == 0 and player.readPoints() != 0:
-        player.player_speed -= 1
-        title = f'John Man — Score: {player.points} — Lives: {player.lives} — Speed: {player.player_speed}'
-        pygame.display.set_caption(title)
 
+def check_level_complete():
+    dots_remaining = False
+
+    # Check if any dots remain in the level
+    for row in level:
+        if 1 in row or 2 in row:
+            dots_remaining = True
+            break
+
+    if not dots_remaining:
+        # Level complete - reset the board and increase speed
+        reset_level()
+        increase_speed()
+        return True
+    return False
+
+
+def reset_level():
+    global level, boards
+
+    # Instead of trying to copy boards, just reload the level from the board.py file
+    from board import boards as original_boards
+
+    # Reset the level with fresh data from import
+    level = []
+    for row in original_boards:
+        level.append(row.copy())
+
+    # Reset ghost positions
+    for i, ghost in enumerate(ghosts):
+        # Reset ghosts to their starting positions
+        if i == 0:  # Ghost 0: Top-left
+            ghost._Object__row = 2
+            ghost._Object__col = 2
+        elif i == 1:  # Ghost 1: Top-right
+            ghost._Object__row = 2
+            ghost._Object__col = 27
+        elif i == 2:  # Ghost 2: Bottom-left
+            ghost._Object__row = 30
+            ghost._Object__col = 2
+        elif i == 3:  # Ghost 3: Bottom-right
+            ghost._Object__row = 30
+            ghost._Object__col = 27
+
+        # Update pixel positions
+        ghost._Object__xPos = ghost._Object__col * TILEWIDTH
+        ghost._Object__yPos = ghost._Object__row * TILEHEIGHT
+        ghost.mortality = False  # Reset mortality
+
+    # Reset player position
+    player._Object__row = 18
+    player._Object__col = 15
+    player._Object__xPos = 15 * TILEWIDTH
+    player._Object__yPos = 18 * TILEHEIGHT
+    player.direction = 0
+    player.direction_command = 0
+    player.power = False
+    player.power_counter = 0
+    player.eaten_ghosts = [False, False, False, False]
+
+
+def increase_speed():
+    global player_speed, ghost_speed
+
+    # Decrease speed by 1 but keep minimum of 3 to prevent issues
+    player_speed = max(3, player_speed - 1)
+    player.player_speed = player_speed  # Ensure player instance gets updated speed
+
+    # Make ghosts faster but not too fast
+    ghost_speed = max(3, ghost_speed - 1)
+
+    # Update each ghost's speed attribute
+    for ghost in ghosts:
+        ghost.speed = ghost_speed
+
+    # Update title with new speed level
+    title = f'John Man — Score: {player.points} — Lives: {player.lives} — Speed: {player_speed}'
+    pygame.display.set_caption(title)
 
 running = True  # game loop
 while running:
@@ -538,13 +813,19 @@ while running:
     drawPlayer()
     drawGhosts()
     turns_allowed = player.checkTurns() # Check if the player can turn in each direction
+    player.movePlayer()
     player.checkCollisions()
     player.powerUp()
-    
+    player.checkGhostCollisions()
+
+    check_level_complete()
+
     # Move all ghosts
     for ghost in ghosts:
-        ghost.findPath(player.readRow(), player.readCol())  # Calculate best direction to player
-        ghost.moveGhost()  # Move the ghost
+        ghost.turns_allowed = ghost.checkTurns()
+        if counter % (4 + ghost.character) == 0:  # Different timing for each ghost
+            ghost.findPath(player.readRow(), player.readCol())
+        ghost.moveGhost()
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -567,7 +848,6 @@ while running:
                 player.direction_command = 2
             if event.key == pygame.K_DOWN and player.direction_command == 3:
                 player.direction_command = 3
-    player.movePlayer()
 
     pygame.display.flip()
 pygame.quit()
