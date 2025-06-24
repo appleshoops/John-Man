@@ -195,6 +195,8 @@ class Player(Object): # player is a subclass of object
         self.player_speed = player_speed
 
     @override
+    def readPoints(self):
+        return self.points
     def drawSprite(self): # draws the player sprite onto the screen
         current_sprite = None
         sprite_index = (self.animation_counter // 3) % len(self.player_images) # cycles through the player animation
@@ -263,14 +265,14 @@ class Player(Object): # player is a subclass of object
         if current_tile == 1: # Check if the player is on a dot
             level[self.readRow()][self.readCol()] = 0 # remove dot
             self.points += 1 # increase score
-            title = f'John Man — Score: {self.points} — Lives: {self.lives}'
+            title = f'John Man — Score: {self.points} — Lives: {self.lives} — Speed: {self.player_speed}'
             pygame.display.set_caption(title)
         if current_tile == 2: # Check if the player is on a big dot
             level[self.readRow()][self.readCol()] = 0
             self.points += 10 # big dots get more points
             self.power = True # activate power pellet
             self.power_counter = 0
-            title = f'John Man — Score: {self.points} — Lives: {self.lives}'
+            title = f'John Man — Score: {self.points} — Lives: {self.lives} — Speed: {self.player_speed}'
             pygame.display.set_caption(title)
         return self.points, self.power, self.power_counter, self.eaten_ghosts
     def powerUp(self): # manages the player's power state
@@ -281,42 +283,65 @@ class Player(Object): # player is a subclass of object
             self.power = False
             self.eaten_ghosts = [False, False, False, False]
 class Ghost(Object): # ghost is a subclass of object
-    def __init__(self, plane, row, col, x_pos, y_pos, character, target, box, mortality, ghost_images, direction):
+    def __init__(self, plane, row, col, x_pos, y_pos, character, target, box, mortality, ghost_images, direction, speed):
         super().__init__(plane, row, col, x_pos, y_pos)
         self.character = character
         self.target = target
-        self.speed = 7  # Speed of the ghost, lower is faster
+        self.speed = speed  # Speed of the ghost, lower is faster
         self.in_box = box
         self.mortality = mortality  # if the ghost is dead
-        self.turns, self.in_box = self.checkCollisions()
         self.ghost_images = ghost_images
-        self.rect = self.drawSprite(player.power, player.eaten_ghosts)
         self.direction = direction
-    @override
-    def drawSprite(self, player_power, eaten_ghosts): # passes in variables from the player
-        current_sprite = None
+        self.move_counter = 0
+        self.turns_allowed = [False, False, False, False]
+        # Remove the drawSprite call from init - this should be called in the game loop
+        self.rect = pygame.rect.Rect(0, 0, 36, 36)  # Initialize with default rect
 
-        # Determine which sprite to use
-        if self.mortality:  # Ghost is dead (eyes only)
-            current_sprite = self.ghost_images[6]
-        elif player_power and not eaten_ghosts[self.character]:  # Power pellet active, ghost vulnerable
-            current_sprite = self.ghost_images[5]
-        elif eaten_ghosts[self.character]:  # Ghost has been eaten but not dead yet
-            current_sprite = self.ghost_images[5]
-        else:  # Normal ghost state
-            current_sprite = self.ghost_images[self.character]
-
-        # Center the sprite in the tile (like the Player class does)
-        if current_sprite:
-            sprite_width = current_sprite.get_width()
-            sprite_height = current_sprite.get_height()
-            center_x = self.readXPos() + (TILEWIDTH - sprite_width) // 2
-            center_y = self.readYPos() + (TILEHEIGHT - sprite_height) // 2
-            self.readSurface().blit(current_sprite, (center_x, center_y))
-
-        # Create collision rect centered on the ghost
-        self.rect = pygame.rect.Rect(self.readCentreXPos() - 18, self.readCentreYPos() - 18, 36, 36)
-        return self.rect
+    def moveGhost(self):
+        self.turns_allowed = self.checkTurns()
+        self.move_counter += 1
+        
+        # Debug print to see if the function is being called
+        # print(f"Ghost {self.character}: move_counter={self.move_counter}, direction={self.direction}, turns_allowed={self.turns_allowed}")
+        
+        if self.move_counter >= self.speed:
+            self.move_counter = 0
+            if self.turns_allowed[self.direction]:
+                # print(f"Ghost {self.character} moving in direction {self.direction}")
+                if self.direction == 0:  # Moving right
+                    current_col = self.readCol()
+                    new_col = current_col + 1
+                    if new_col >= NUMBERCOLS:
+                        new_col = 0
+                    self._Object__col = new_col
+                    self._Object__xPos = new_col * TILEWIDTH
+                elif self.direction == 1:  # Moving left
+                    current_col = self.readCol()
+                    new_col = current_col - 1
+                    if new_col < 0:
+                        new_col = NUMBERCOLS - 1
+                    self._Object__col = new_col
+                    self._Object__xPos = new_col * TILEWIDTH
+                elif self.direction == 2:  # Moving up
+                    current_row = self.readRow()
+                    new_row = current_row - 1
+                    if new_row >= 0:
+                        self._Object__row = new_row
+                        self._Object__yPos = new_row * TILEHEIGHT
+                elif self.direction == 3:  # Moving down
+                    current_row = self.readRow()
+                    new_row = current_row + 1
+                    if new_row < NUMBERROWS:
+                        self._Object__row = new_row
+                        self._Object__yPos = new_row * TILEHEIGHT
+            else:
+                # If current direction is blocked, find a new valid direction
+                print(f"Ghost {self.character} blocked, finding new direction")
+                for i in range(4):
+                    if self.turns_allowed[i]:
+                        self.direction = i
+                        print(f"Ghost {self.character} changed direction to {i}")
+                        break
     def checkDeadBox(self): # checks if the ghosts are in the dead box
         current_tile = level[self.readRow()][self.readCol()]
         if 13 <= self.readXPos() <= 18 and 14 <= self.readYPos() <= 17: # coordinate range for the dead box
@@ -324,8 +349,6 @@ class Ghost(Object): # ghost is a subclass of object
         else:
             self.in_box = False
         return self.in_box
-    def checkCollisions(self):
-        return self.checkTurns(), self.checkDeadBox()
     def findPath(self, player_row, player_col): # finds the shortest path to the player
         #manhattanDistance = ((abs(player_row - self.readRow())) +
         #                     (abs(player_col - self.readCol())))
@@ -354,11 +377,39 @@ class Ghost(Object): # ghost is a subclass of object
                 else:
                     pass
         return self.direction
-    def moveGhost(self):
-        pass
+
+
         # use code from player movement
 
+    @override
+    def drawSprite(self): # Override the parent method with no additional parameters
+        # Get player power and eaten ghosts from the global player object
+        player_power = player.power
+        eaten_ghosts = player.eaten_ghosts
+        
+        current_sprite = None
 
+        # Determine which sprite to use
+        if self.mortality:  # Ghost is dead (eyes only)
+            current_sprite = self.ghost_images[6]
+        elif player_power and not eaten_ghosts[self.character]:  # Power pellet active, ghost vulnerable
+            current_sprite = self.ghost_images[5]
+        elif eaten_ghosts[self.character]:  # Ghost has been eaten but not dead yet
+            current_sprite = self.ghost_images[5]
+        else:  # Normal ghost state
+            current_sprite = self.ghost_images[self.character]
+
+        # Center the sprite in the tile (like the Player class does)
+        if current_sprite:
+            sprite_width = current_sprite.get_width()
+            sprite_height = current_sprite.get_height()
+            center_x = self.readXPos() + (TILEWIDTH - sprite_width) // 2
+            center_y = self.readYPos() + (TILEHEIGHT - sprite_height) // 2
+            self.readSurface().blit(current_sprite, (center_x, center_y))
+
+        # Create collision rect centered on the ghost
+        self.rect = pygame.rect.Rect(self.readCentreXPos() - 18, self.readCentreYPos() - 18, 36, 36)
+        return self.rect
 
 
 # setting up the game including the screen size, clock, surface, and taking the level from the boards file
@@ -371,7 +422,8 @@ level = boards
 counter = 0
 turns_allowed = [False, False, False, False]  # [right, left, up, down]
 startup_counter = 0
-speed = 7 # Speed of the player, lower is faster
+player_speed = 7 # Speed of the player, lower is faster
+ghost_speed = 8
 
 sprite_paths = {
     0: "sprites/grid/0.png",
@@ -422,7 +474,7 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
 
 player_sprites = []
-player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 0, False, 0, speed)
+player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 0, False, 0, player_speed)
 def drawPlayer():
     for i in range(1, 4):
         sprite = pygame.image.load(f'sprites/john/{i}.png').convert_alpha()
@@ -432,31 +484,44 @@ def drawPlayer():
     player.drawSprite()
     player.checkTurns()
 
+ghosts = []
 def drawGhosts():
-    ghost_sprites = []
-    ghosts = []
+    global ghosts  # Make sure we're using the global ghosts list
+    
+    # Only create ghosts if the list is empty (first time)
+    if not ghosts:
+        ghost_sprites = []
 
-    # Load ghost sprites
-    for i in range(1, 7):
-        sprite = pygame.image.load(f'sprites/ghosts/{i}.png').convert_alpha()
-        # Use near-white instead of pure white
-        sprite.set_colorkey((254, 254, 254))  # Very close to white but not pure white
-        ghost_sprites.append(sprite)
+        # Load ghost sprites
+        for i in range(1, 7):
+            sprite = pygame.image.load(f'sprites/ghosts/{i}.png').convert_alpha()
+            sprite.set_colorkey((254, 254, 254))
+            ghost_sprites.append(sprite)
+        
+        # Define corner positions for each ghost
+        ghost_positions = [
+            (2, 2),      # Ghost 0: Top-left corner
+            (2, 27),     # Ghost 1: Top-right corner
+            (30, 2),     # Ghost 2: Bottom-left corner
+            (30, 27)     # Ghost 3: Bottom-right corner
+        ]
+        
+        # Create ghosts at different corner positions
+        for i in range(4):
+            row, col = ghost_positions[i]
+            ghost = Ghost(surface, row, col, col * TILEWIDTH, row * TILEHEIGHT, i, player, False, False, ghost_sprites, 0, ghost_speed)
+            ghosts.append(ghost)
     
-    # Define corner positions for each ghost
-    ghost_positions = [
-        (2, 2),      # Ghost 0: Top-left corner
-        (2, 27),     # Ghost 1: Top-right corner
-        (30, 2),     # Ghost 2: Bottom-left corner
-        (30, 27)     # Ghost 3: Bottom-right corner
-    ]
-    
-    # Create ghosts at different corner positions
-    for i in range(4):
-        row, col = ghost_positions[i]
-        ghost = Ghost(surface, row, col, col * TILEWIDTH, row * TILEHEIGHT, i, player, False, False, ghost_sprites, 0)
-        ghosts.append(ghost)
-        ghost.drawSprite(player.power, player.eaten_ghosts)
+    # Draw all ghosts
+    for ghost in ghosts:
+        ghost.drawSprite()  # Call without parameters now
+
+def speedSet():
+    score = player.readPoints()
+    if player.readPoints() % 282 == 0 and player.readPoints() != 0:
+        player.player_speed -= 1
+        title = f'John Man — Score: {player.points} — Lives: {player.lives} — Speed: {player.player_speed}'
+        pygame.display.set_caption(title)
 
 
 running = True  # game loop
@@ -475,6 +540,12 @@ while running:
     turns_allowed = player.checkTurns() # Check if the player can turn in each direction
     player.checkCollisions()
     player.powerUp()
+    
+    # Move all ghosts
+    for ghost in ghosts:
+        ghost.findPath(player.readRow(), player.readCol())  # Calculate best direction to player
+        ghost.moveGhost()  # Move the ghost
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -497,5 +568,6 @@ while running:
             if event.key == pygame.K_DOWN and player.direction_command == 3:
                 player.direction_command = 3
     player.movePlayer()
+
     pygame.display.flip()
 pygame.quit()
