@@ -731,6 +731,7 @@ def check_level_complete():
 
     if not dots_remaining:
         # Level complete - reset the board and increase speed
+        player.lives += 1  # Give player an extra life if they complete the level
         reset_level()
         increase_speed()
         return True
