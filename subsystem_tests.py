@@ -1,7 +1,7 @@
 import pytest
 import pygame
-import main
-from main import Player, Ghost, TILEWIDTH, TILEHEIGHT, check_level_complete
+import game
+from game import Player, Ghost, TILEWIDTH, TILEHEIGHT, check_level_complete
 from board import boards as original_boards
 
 
@@ -20,7 +20,7 @@ def game_subsystem_setup(monkeypatch):
     screen = pygame.display.set_mode((1, 1))
 
     test_level = [row[:] for row in original_boards]
-    monkeypatch.setattr(main, 'level', test_level)
+    monkeypatch.setattr(game, 'level', test_level)
 
     player_images = [pygame.Surface((1, 1))]
     player = Player(screen, 18, 15, 15 * TILEWIDTH, 18 * TILEHEIGHT, 0, 0, player_images, 0, False, 0, 7)
@@ -33,7 +33,7 @@ def game_subsystem_setup(monkeypatch):
     ]
     monkeypatch.setattr(game, 'ghosts', ghosts)
 
-    monkeypatch.setattr(main, 'player_speed', 7)
+    monkeypatch.setattr(game, 'player_speed', 7)
     monkeypatch.setattr(game, 'ghost_speed', 8)
 
     yield player, ghosts, test_level

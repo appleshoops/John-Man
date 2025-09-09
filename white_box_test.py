@@ -1,6 +1,6 @@
 import pytest
 import pygame
-from main import Player, Ghost, level, TILEWIDTH, TILEHEIGHT, NUMBERCOLS, NUMBERROWS, check_level_complete, reset_level, increase_speed
+from game import Player, Ghost, level, TILEWIDTH, TILEHEIGHT, NUMBERCOLS, NUMBERROWS, check_level_complete, reset_level, increase_speed
 from board import boards as original_boards
 
 @pytest.fixture
@@ -10,12 +10,12 @@ def game_setup():
     screen = pygame.display.set_mode((1, 1))
 
     # Create a fresh, mutable copy of the level for each test.
-    import main
-    main.level = [row.copy() for row in original_boards]
+    import game
+    game.level = [row.copy() for row in original_boards]
 
     # Setup player
     player = Player(screen, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, [], 0, False, 0, 7)
-    main.player = player
+    game.player = player
 
     # Setup ghosts
     ghost_sprites = [pygame.Surface((1, 1))] * 6  # Dummy sprites
@@ -25,7 +25,7 @@ def game_setup():
         Ghost(screen, 30, 2, 2 * TILEWIDTH, 30 * TILEHEIGHT, 2, player, False, False, ghost_sprites, 0, 8),
         Ghost(screen, 30, 27, 27 * TILEWIDTH, 30 * TILEHEIGHT, 3, player, False, False, ghost_sprites, 0, 8)
     ]
-    main.ghosts = ghosts
+    game.ghosts = ghosts
 
     yield player, ghosts, game.level
 
@@ -115,7 +115,7 @@ def test_ghost_fleeing_behavior_when_powered_up(game_setup):
 def test_level_reset_on_completion(game_setup):
     """Verify that reset_level correctly restores the board and objects."""
     player, ghosts, test_level = game_setup
-    import main
+    import game
 
     # Modify the level and player/ghost state
     test_level[2][2] = 0 # "Eat" a pellet
@@ -132,7 +132,7 @@ def test_level_reset_on_completion(game_setup):
 
 def test_speed_increase_stops_at_minimum(game_setup):
     """Verify that speed values do not decrease below the minimum of 3."""
-    import main
+    import game
     # Set speeds to the minimum value
     game.player_speed = 3
     game.ghost_speed = 3

@@ -1,6 +1,6 @@
 import pytest
 import pygame
-from main import Player, Ghost, Object, TILEWIDTH, TILEHEIGHT, increase_speed, reset_level
+from game import Player, Ghost, Object, TILEWIDTH, TILEHEIGHT, increase_speed, reset_level
 from board import boards as original_boards
 
 # A simplified mock board for controlled testing
