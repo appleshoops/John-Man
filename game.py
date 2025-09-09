@@ -1,8 +1,14 @@
 # imports
 import pygame
 import random
+import sys, os
 from board import boards
 from typing import override
+
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 # create constant variables
 TILEWIDTH = 28
@@ -629,9 +635,9 @@ class Ghost(Object): # ghost is a subclass of object
         return self.rect
 
 sprite_paths = {
-    0: "sprites/grid/0.png",
-    1: "sprites/grid/1.png",
-    2: "sprites/grid/2.png"
+    0: resource_path("sprites/grid/0.png"),
+    1: resource_path("sprites/grid/1.png"),
+    2: resource_path("sprites/grid/2.png")
 }
 sprites = {key: pygame.image.load(path).convert_alpha() for key, path in sprite_paths.items()}
 
@@ -680,7 +686,7 @@ player_sprites = []
 player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 0, False, 0, player_speed)
 def drawPlayer():
     for i in range(1, 4):
-        sprite = pygame.image.load(f'sprites/john/{i}.png').convert_alpha()
+        sprite = pygame.image.load(resource_path(f'sprites/john/{i}.png')).convert_alpha()
        #sprite = pygame.transform.scale(sprite, (TILEWIDTH, TILEHEIGHT))  # Scale to tile size (28x28)
         sprite.set_colorkey((255, 255, 255))  # Make white transparent
         player_sprites.append(sprite)
@@ -697,7 +703,7 @@ def drawGhosts():
 
         # Load ghost sprites
         for i in range(1, 7):
-            sprite = pygame.image.load(f'sprites/ghosts/{i}.png').convert_alpha()
+            sprite = pygame.image.load(resource_path(f'sprites/ghosts/{i}.png')).convert_alpha()
             sprite.set_colorkey((254, 254, 254))
             ghost_sprites.append(sprite)
         
