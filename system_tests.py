@@ -1,7 +1,7 @@
 import pytest
 import pygame
-import game
-from game import Player, Ghost, TILEWIDTH, TILEHEIGHT, check_level_complete
+import main
+from main import Player, Ghost, TILEWIDTH, TILEHEIGHT, check_level_complete
 from board import boards as original_boards
 
 def set_pos(obj, row, col):
@@ -92,8 +92,8 @@ def test_full_level_clear_and_reset_system(game_system_setup):
 
     # Assert: Verify that the game state has been reset and updated correctly.
     # 1. Speeds are increased (values are decreased).
-    assert game.player_speed == initial_player_speed - 1
-    assert game.ghost_speed == initial_ghost_speed - 1
+    assert main.player_speed == initial_player_speed - 1
+    assert main.ghost_speed == initial_ghost_speed - 1
 
     # 2. Player and ghosts are reset to their starting positions.
     assert (player.readRow(), player.readCol()) == (18, 15)
