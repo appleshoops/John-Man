@@ -8,3 +8,8 @@ build
 dist
 .mypy_cache
 .venv
+.DS_Store
+sprites/.DS_Store
+sprites/ghosts/.DS_Store
+sprites/grid/.DS_Store
+sprites/john/.DS_Store
