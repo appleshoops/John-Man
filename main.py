@@ -640,7 +640,7 @@ sprite_paths = {
     1: resource_path("assets/grid/1.png"),
     2: resource_path("assets/grid/2.png")
 }
-sprites = {key: pygame.image.load(path).convert_alpha() for key, path in sprite_paths.items()}
+sprites = {key: pygame.image.load(path) for key, path in sprite_paths.items()}
 
 objectList: list[Object] = []     # create list to house the objects
 def drawGrid():     # create a function to draw all the objects needed on the screen
@@ -687,7 +687,7 @@ player_sprites: list[pygame.Surface] = []
 player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 0, False, 0, player_speed)
 def drawPlayer():
     for i in range(1, 4):
-        sprite = pygame.image.load(resource_path(f'assets/john/{i}.png')).convert_alpha()
+        sprite = pygame.image.load(resource_path(f'assets/john/{i}.png'))
        #sprite = pygame.transform.scale(sprite, (TILEWIDTH, TILEHEIGHT))  # Scale to tile size (28x28)
         sprite.set_colorkey((255, 255, 255))  # Make white transparent
         player_sprites.append(sprite)
@@ -704,7 +704,7 @@ def drawGhosts():
 
         # Load ghost sprites
         for i in range(1, 7):
-            sprite = pygame.image.load(resource_path(f'assets/ghosts/{i}.png')).convert_alpha()
+            sprite = pygame.image.load(resource_path(f'assets/ghosts/{i}.png'))
             sprite.set_colorkey((254, 254, 254))
             ghost_sprites.append(sprite)
         

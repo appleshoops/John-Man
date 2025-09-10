@@ -2,7 +2,7 @@ import pytest
 import pygame
 # It's assumed that game.py can be imported without starting the game loop immediately.
 # If game.py runs on import, it may need to be refactored to be testable.
-from game import Player, Ghost, level, TILEWIDTH, TILEHEIGHT, NUMBERCOLS, NUMBERROWS, player_speed, ghost_speed, \
+from main import Player, Ghost, level, TILEWIDTH, TILEHEIGHT, NUMBERCOLS, NUMBERROWS, player_speed, ghost_speed, \
     check_level_complete, reset_level, increase_speed
 from board import boards as original_boards
 
@@ -16,12 +16,12 @@ def game_setup():
 
     # Create a fresh, mutable copy of the level for each test to avoid side effects.
     # This is crucial because tests will modify the level by "eating" pellets.
-    import game
-    game.level = [row.copy() for row in original_boards]
+    import main
+    main.level = [row.copy() for row in original_boards]
 
     # Setup player
     player = Player(screen, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, [], 0, False, 0, player_speed)
-    game.player = player
+    main.player = player
 
     # Setup ghosts
     ghost_sprites = [pygame.Surface((1, 1))] * 6  # Dummy sprites
@@ -31,10 +31,10 @@ def game_setup():
         Ghost(screen, 30, 2, 2 * TILEWIDTH, 30 * TILEHEIGHT, 2, player, False, False, ghost_sprites, 0, ghost_speed),
         Ghost(screen, 30, 27, 27 * TILEWIDTH, 30 * TILEHEIGHT, 3, player, False, False, ghost_sprites, 0, ghost_speed)
     ]
-    game.ghosts = ghosts
+    main.ghosts = ghosts
 
     # Provide the setup objects to the test function
-    yield player, ghosts, game.level
+    yield player, ghosts, main.level
 
     # Teardown
     pygame.quit()
@@ -174,8 +174,8 @@ def test_game_over(game_setup):
 def test_level_completion(game_setup):
     """GAME-STATE-02: Verify level completion and reset."""
     player, _, test_level = game_setup
-    import game
-    game.player_speed = 7  # Reset speed for predictability
+    import main
+    main.player_speed = 7  # Reset speed for predictability
 
     # Clear all pellets except one
     for r in range(len(test_level)):
@@ -192,6 +192,6 @@ def test_level_completion(game_setup):
     level_completed = check_level_complete()
 
     assert level_completed is True
-    assert game.player_speed == 6  # Speed increased (value decreases)
-    assert game.level[2][2] == 1  # A known pellet is restored
+    assert main.player_speed == 6  # Speed increased (value decreases)
+    assert main.level[2][2] == 1  # A known pellet is restored
     assert (player.readRow(), player.readCol()) == (18, 15)  # Player is reset
