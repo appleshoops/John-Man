@@ -5,10 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6bcb8d9c-c763-4f58-a0c6-84968fd6a371" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/John Man.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/John Man.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/game.py" beforeDir="false" afterPath="$PROJECT_DIR$/game.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/game" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/game.app/Contents/Info.plist" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/game.app/Contents/MacOS/game" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/game.app/Contents/Resources/icon-windowed.icns" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/game.app/Contents/_CodeSignature/CodeResources" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,7 +87,7 @@
       <updated>1749172888845</updated>
       <workItem from="1749172889887" duration="49000" />
       <workItem from="1750136352138" duration="9000" />
-      <workItem from="1757419815793" duration="811000" />
+      <workItem from="1757419815793" duration="1709000" />
     </task>
     <servers />
   </component>
