@@ -1,7 +1,7 @@
 import pytest
 import pygame
-import game
-from game import Player, Ghost, TILEWIDTH, TILEHEIGHT, check_level_complete
+import main
+from main import Player, Ghost, TILEWIDTH, TILEHEIGHT, check_level_complete
 from board import boards as original_boards
 
 
@@ -20,21 +20,21 @@ def game_subsystem_setup(monkeypatch):
     screen = pygame.display.set_mode((1, 1))
 
     test_level = [row[:] for row in original_boards]
-    monkeypatch.setattr(game, 'level', test_level)
+    monkeypatch.setattr(main, 'level', test_level)
 
     player_images = [pygame.Surface((1, 1))]
     player = Player(screen, 18, 15, 15 * TILEWIDTH, 18 * TILEHEIGHT, 0, 0, player_images, 0, False, 0, 7)
-    monkeypatch.setattr(game, 'player', player)
+    monkeypatch.setattr(main, 'player', player)
 
     ghost_sprites = [pygame.Surface((1, 1))] * 6
     ghosts = [
         Ghost(screen, 2, 2, 2 * TILEWIDTH, 2 * TILEHEIGHT, 0, player, False, False, ghost_sprites, 0, 8),
         Ghost(screen, 2, 27, 27 * TILEWIDTH, 2 * TILEHEIGHT, 1, player, False, False, ghost_sprites, 0, 8)
     ]
-    monkeypatch.setattr(game, 'ghosts', ghosts)
+    monkeypatch.setattr(main, 'ghosts', ghosts)
 
-    monkeypatch.setattr(game, 'player_speed', 7)
-    monkeypatch.setattr(game, 'ghost_speed', 8)
+    monkeypatch.setattr(main, 'player_speed', 7)
+    monkeypatch.setattr(main, 'ghost_speed', 8)
 
     yield player, ghosts, test_level
 
@@ -118,7 +118,7 @@ def test_level_completion_resets_and_increases_speed(game_subsystem_setup):
         assert ghost.speed == 7
 
     # 2. Level board is reset. Check game.level directly as the local 'level' is now stale.
-    assert game.level[2][3] == 1
+    assert main.level[2][3] == 1
 
     # 3. Player and ghosts are reset to their starting positions
     assert (player.readRow(), player.readCol()) == (18, 15)
