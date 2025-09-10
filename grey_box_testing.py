@@ -1,7 +1,7 @@
 import pytest
 import pygame
 import random
-from game import Player, Ghost, TILEWIDTH, TILEHEIGHT
+from main import Player, Ghost, TILEWIDTH, TILEHEIGHT
 from board import boards as original_boards
 
 
@@ -23,13 +23,13 @@ def game_setup(monkeypatch):
     screen = pygame.display.set_mode((1, 1))
 
     # Import the game module to access its global variables
-    import game
-    game.level = [row.copy() for row in original_boards]
+    import main
+    main.level = [row.copy() for row in original_boards]
 
     # Setup player with a dummy sprite to prevent errors
     player_images = [pygame.Surface((1, 1))]
     player = Player(screen, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_images, 0, False, 0, 7)
-    game.player = player
+    main.player = player
 
     # Setup ghosts
     ghost_sprites = [pygame.Surface((1, 1))] * 6  # Dummy sprites
@@ -39,9 +39,9 @@ def game_setup(monkeypatch):
         Ghost(screen, 30, 2, 2 * TILEWIDTH, 30 * TILEHEIGHT, 2, player, False, False, ghost_sprites, 0, 8),
         Ghost(screen, 30, 27, 27 * TILEWIDTH, 30 * TILEHEIGHT, 3, player, False, False, ghost_sprites, 0, 8)
     ]
-    game.ghosts = ghosts
+    main.ghosts = ghosts
 
-    yield player, ghosts, game.level
+    yield player, ghosts, main.level
 
     pygame.quit()
 
