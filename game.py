@@ -1,6 +1,6 @@
-# imports
 import pygame
 import random
+import asyncio
 import sys, os
 from board import boards
 from typing import override
@@ -36,6 +36,7 @@ turns_allowed = [False, False, False, False]  # [right, left, up, down]
 startup_counter = 0
 player_speed = 7 # Speed of the player, lower is faster
 ghost_speed = 8
+running = True  # global variable for the game loop
 
 # set the title of the window
 title = 'John-Man'
@@ -635,13 +636,13 @@ class Ghost(Object): # ghost is a subclass of object
         return self.rect
 
 sprite_paths = {
-    0: resource_path("sprites/grid/0.png"),
-    1: resource_path("sprites/grid/1.png"),
-    2: resource_path("sprites/grid/2.png")
+    0: resource_path("assets/grid/0.png"),
+    1: resource_path("assets/grid/1.png"),
+    2: resource_path("assets/grid/2.png")
 }
 sprites = {key: pygame.image.load(path).convert_alpha() for key, path in sprite_paths.items()}
 
-objectList = []     # create list to house the objects
+objectList: list[Object] = []     # create list to house the objects
 def drawGrid():     # create a function to draw all the objects needed on the screen
     for i in range(len(level)):     # loops through the rows in the board file
         for j in range(len(level[i])):  # loops through all the columns for each row
@@ -682,18 +683,18 @@ def drawGrid():     # create a function to draw all the objects needed on the sc
                 case _:
                     pygame.draw.rect(screen, (0, 0, 0, 0), (j * TILEWIDTH, i * TILEHEIGHT, TILEWIDTH, TILEHEIGHT))
 
-player_sprites = []
+player_sprites: list[pygame.Surface] = []
 player = Player(surface, 18, 15, 18 * TILEWIDTH, 15 * TILEHEIGHT, 0, 0, player_sprites, 0, False, 0, player_speed)
 def drawPlayer():
     for i in range(1, 4):
-        sprite = pygame.image.load(resource_path(f'sprites/john/{i}.png')).convert_alpha()
+        sprite = pygame.image.load(resource_path(f'assets/john/{i}.png')).convert_alpha()
        #sprite = pygame.transform.scale(sprite, (TILEWIDTH, TILEHEIGHT))  # Scale to tile size (28x28)
         sprite.set_colorkey((255, 255, 255))  # Make white transparent
         player_sprites.append(sprite)
     player.drawSprite()
     player.checkTurns()
 
-ghosts = []
+ghosts: list[Ghost] = []
 def drawGhosts():
     global ghosts  # Make sure we're using the global ghosts list
     
@@ -703,7 +704,7 @@ def drawGhosts():
 
         # Load ghost sprites
         for i in range(1, 7):
-            sprite = pygame.image.load(resource_path(f'sprites/ghosts/{i}.png')).convert_alpha()
+            sprite = pygame.image.load(resource_path(f'assets/ghosts/{i}.png')).convert_alpha()
             sprite.set_colorkey((254, 254, 254))
             ghost_sprites.append(sprite)
         
@@ -806,55 +807,63 @@ def increase_speed():
     title = f'John Man — Score: {player.points} — Lives: {player.lives} — Speed: {player_speed}'
     pygame.display.set_caption(title)
 
-running = True  # game loop
-while running:
-    timer.tick(frames)
-
-    if counter < 15:
-        counter += 1
-    else:
-        counter = 0
-
-    screen.fill(BLACK)
-    drawGrid()
-    drawPlayer()
-    drawGhosts()
-    turns_allowed = player.checkTurns() # Check if the player can turn in each direction
-    player.movePlayer()
-    player.checkCollisions()
-    player.powerUp()
-    player.checkGhostCollisions()
-
-    check_level_complete()
-
-    # Move all ghosts
-    for ghost in ghosts:
-        ghost.turns_allowed = ghost.checkTurns()
-        if counter % (4 + ghost.character) == 0:  # Different timing for each ghost
-            ghost.findPath(player.readRow(), player.readCol())
-        ghost.moveGhost()
+async def main():
+    global running, counter, turns_allowed
     
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                player.direction_command = 0
-            if event.key == pygame.K_LEFT:
-                player.direction_command = 1
-            if event.key == pygame.K_UP:
-                player.direction_command = 2
-            if event.key == pygame.K_DOWN:
-                player.direction_command = 3
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_RIGHT and player.direction_command == 0:
-                player.direction_command = 0
-            if event.key == pygame.K_LEFT and player.direction_command == 1:
-                player.direction_command = 1
-            if event.key == pygame.K_UP and player.direction_command == 2:
-                player.direction_command = 2
-            if event.key == pygame.K_DOWN and player.direction_command == 3:
-                player.direction_command = 3
+    running = True  # game loop
+    while running:
+        timer.tick(frames)
 
-    pygame.display.flip()
-pygame.quit()
+        if counter < 15:
+            counter += 1
+        else:
+            counter = 0
+
+        screen.fill(BLACK)
+        drawGrid()
+        drawPlayer()
+        drawGhosts()
+        turns_allowed = player.checkTurns() # Check if the player can turn in each direction
+        player.movePlayer()
+        player.checkCollisions()
+        player.powerUp()
+        player.checkGhostCollisions()
+
+        check_level_complete()
+
+        # Move all ghosts
+        for ghost in ghosts:
+            ghost.turns_allowed = ghost.checkTurns()
+            if counter % (4 + ghost.character) == 0:  # Different timing for each ghost
+                ghost.findPath(player.readRow(), player.readCol())
+            ghost.moveGhost()
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    player.direction_command = 0
+                if event.key == pygame.K_LEFT:
+                    player.direction_command = 1
+                if event.key == pygame.K_UP:
+                    player.direction_command = 2
+                if event.key == pygame.K_DOWN:
+                    player.direction_command = 3
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_RIGHT and player.direction_command == 0:
+                    player.direction_command = 0
+                if event.key == pygame.K_LEFT and player.direction_command == 1:
+                    player.direction_command = 1
+                if event.key == pygame.K_UP and player.direction_command == 2:
+                    player.direction_command = 2
+                if event.key == pygame.K_DOWN and player.direction_command == 3:
+                    player.direction_command = 3
+
+        pygame.display.flip()
+        await asyncio.sleep(0)  # Yield control to allow other coroutines to run
+    
+    pygame.quit()
+
+if __name__ == "__main__":
+    asyncio.run(main())
