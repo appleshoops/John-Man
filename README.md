@@ -6,7 +6,7 @@ I made this mostly as a joke but I spent way longer than I expected on it, as I 
 
 ## Running The Game
 
-To run it, you just need the latest version of Python (3.13 at the time, it may break in years to come) and the latest version of PyGame (2.6.1 right now). **Alternatively, I have compiled builds for Windows and Mac which can be found in the releases section of this repository.**
+To run it, you just need the latest version of Python (3.13 at the time, it may break in years to come) and the latest version of PyGame (2.6.1 right now). Alternatively, I have compiled builds for Windows and Mac which can be found in the [releases]([url](https://github.com/appleshoops/John-Man/releases/tag/Executable)) section of this repository.
 
 ### Mac
 If you are opening the game on Mac, you may get a security warning claiming "Apple cannot check it for malicious software". I promise this isnt a virus, to fix it just press OK, open System Settings, open Privacy and Security, scroll to the bottom, and press open anyway, inputting your password or touch ID, then confirming. It may take a few seconds to load but then the game should launch.
